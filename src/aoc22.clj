@@ -1,32 +1,49 @@
 (ns aoc22
   (:require [clojure.string :as st]))
 
+;;
+;; Utility code
+;;
+
+(def prefix "aoc22")
+
 (defn read-input-day
-  "Read the filename 's'.txt from resources, applying 'parse-line' function to any function, if indicated"
-  [s & [parse-line]]
-  (let [fname (str "resources/" s ".txt")
+  "Read the filename 's'.txt from resources, applying 'parse-line-fn' to all lines, if indicated"
+  [s & [parse-line-fn]]
+  (let [fname (str "resources/" prefix "/" s ".txt")
         ret   (st/split-lines (slurp fname))
-        ret   (if parse-line (map parse-line ret) ret)]
+        ret   (if parse-line-fn (map parse-line-fn ret) ret)]
     ret))
 
-(defn num-increases [nums] (->> (map < nums (rest nums))
-                                (filter true?)
-                                count))
-
-(defn d1p1 []
-  (->> (read-input-day "d1p1" #(Integer/valueOf %))
-       num-increases))
-
-(defn run-f
-  "Run solution for day d (1, 25) and part p (1, 2)"
-  [d p]
-  (let [f (find-var (symbol (str "aoc22/" (str "d" d "p" p))))]
-    (when-not (nil? f) (str "Result for day " d ", part " p ": " (f)))))
+(defn parse-int [s] (Integer/valueOf s))
 
 (defn -main
   "Print the solutions for all solved puzzles so far"
   [& _]
-  (->> (for [d (range 1 26), p (range 1 3)] (run-f d p))
-       (filter (comp not nil?))
-       (map println)
-       doall))
+  (let [run-f (fn [day part]
+                (let [f (find-var (symbol (str prefix "/" (str "d" day "p" part))))]
+                  (when-not (nil? f)
+                    (str "Result for day " day ", part " part ": " (f)))))]
+    (->> (for [day (range 1 26), part (range 1 3)] (run-f day part))
+         (filter (comp not nil?))
+         (map println)
+         doall)))
+
+;;
+;; Day 1
+;;
+(defn num-increases [nums] (->> (map < nums (rest nums))
+                                (filter identity)
+                                count))
+
+(defn three-window-sum [num]
+  (map #(+ %1 %2 %3) num (rest num) (rest (rest num))))
+
+(defn d1p1 []
+  (->> (read-input-day "d1p1" parse-int)
+       num-increases))
+
+(defn d1p2 []
+  (->> (read-input-day "d1p1" parse-int)
+       three-window-sum
+       num-increases))
