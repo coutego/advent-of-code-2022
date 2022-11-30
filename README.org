@@ -1,6 +1,39 @@
 * What
-This repository contains WIP solutions in Clojure and Python for Advent of Code 2022.
+This repository contains some WIP solutions in Clojure, Python and Elisp for
+Advent of Code 2022.
 
 I'll post the solutions as soon as I complete them, which could be some days after
 the puzzles are published, for as long as I keep my ability and motivation to
 complete them.
+
+* How
+I'm not putting in git the input files. If you want to run the tests, you will
+have to put your own inputs in files ~resources/aoc22/d[n]p[m].txt~.
+
+For running the code you can do as follows:
+
+** Clojure
+If you have leiningen installed, it's the standard way:
+*** Tests
+#+begin_src shell
+$ lein run
+#+end_src
+
+*** Program
+#+begin_src shell
+$ lein test
+#+end_src
+
+** Python
+You need a recent python 3 (3.10+) and pytest for the tests:
+*** Tests
+#+begin_src shell
+$ pytest src/aoc22.py
+#+end_src
+*** Program
+#+begin_src shell
+$ python3 src/aoc22.py
+#+end_src
+
+** Elisp
+You very likely don't need any instructions.

@@ -15,7 +15,7 @@ def read_input_day(s: str, parse_line_fn: Optional[Callable] = None) -> List[Any
 
     It applies 'parse-line-fn' to all lines, if indicated"""
 
-    fname = f"../resources/aoc22/{s}.txt"
+    fname = f"resources/aoc22/{s}.txt"
     with open(fname, "r") as f:
         ret = f.read().splitlines()
     if parse_line_fn:
@@ -35,17 +35,12 @@ def three_window_sum(nums: List[int]) -> List[int]:
     return list(map(lambda x, y, z: x + y + z, nums, nums[1:], nums[2:]))
 
 
-def test_num_increases():
+def test_d1():
     t = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263]
     assert num_increases(t) == 7
-
-
-# (defn three-window-sum [num]
-#   (map #(+ %1 %2 %3) num (rest num) (rest (rest num))))
-
-# (defn d1p1 []
-#   (->> (read-input-day "d1p1" parse-int)
-#        num-increases))
+    assert num_increases(three_window_sum(t)) == 5
+    assert d1p1() == 1722
+    assert d1p2() == 1748
 
 
 def d1p1():
