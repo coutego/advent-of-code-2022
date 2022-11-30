@@ -1,0 +1,6 @@
+* What
+This repository contains WIP solutions in Clojure and Python for Advent of Code 2022.
+
+I'll post the solutions as soon as I complete them, which could be some days after
+the puzzles are published, for as long as I keep my ability and motivation to
+complete them.
