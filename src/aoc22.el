@@ -35,6 +35,11 @@ It applies 'parse-line-fn' to all lines, if indicated."
          (ret   (if parse-line-fn (-map parse-line-fn ret) ret)))
     ret))
 
+(defun aoc22-parse-opt-int (s)
+  (if (or (not s) (s-equals-p (s-trim s) ""))
+      nil
+    (string-to-number s)))
+
 (defun aoc22-main ()
   (let* ((nums
           (cl-loop for i from 1 to 25
@@ -57,23 +62,36 @@ It applies 'parse-line-fn' to all lines, if indicated."
 ;;
 
 ;; Day 1
-(defun aoc22-num-increases (nums)
-  (->> (-zip nums (cdr nums))
-       (-count (lambda (el) (< (car el) (cdr el))))))
+(defun aoc22-calories (nums)
+  (->> (-partition-by #'not nums)
+       (-filter (lambda (n) (not (-some #'not n))))
+       (-map (lambda (ns) (apply #'+ ns)))))
 
-(defun aoc22-three-window-sum (nums)
-  (->> (-zip nums (cdr nums) (cddr nums))
-       (-map (lambda (el) (-reduce #'+ el)))))
+(defun aoc22-sum-top-n (n nums)
+  (->> (-sort #'> nums)
+       (-take n)
+       (-reduce #'+)))
+
+(defun test-aoc22-d1 ()
+ (let ((data '(1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000)))
+   (cl-assert (= 24000 (apply #'max (aoc22-calories data))))
+   (cl-assert (= 71934 (aoc22-d1p1)))
+   (cl-assert (= 211447 (aoc22-d1p2)))))
+
+(test-aoc22-d1)
 
 (defun aoc22-d1p1 ()
-  (-> (aoc22-read-input-day "d1p1" #'string-to-number)
-      aoc22-num-increases))
+  (->> (aoc22-read-input-day "d1p1" #'aoc22-parse-opt-int)
+       aoc22-calories
+       (apply #'max)))
 
 (defun aoc22-d1p2 ()
-  (-> (aoc22-read-input-day "d1p1" #'string-to-number)
-      aoc22-three-window-sum
-      aoc22-num-increases))
+  (->> (aoc22-read-input-day "d1p1" #'aoc22-parse-opt-int)
+       aoc22-calories
+       (aoc22-sum-top-n 3)))
 
+(aoc22-d1p1)
+(aoc22-d1p2)
 
 (provide 'aoc22)
 ;;; aoc22.el ends here
