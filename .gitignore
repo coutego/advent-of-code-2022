@@ -11,3 +11,6 @@ pom.xml.asc
 /.prepl-port
 .hgignore
 .hg/
+/doc/
+/src/__pycache__/
+/resources/aoc22/d*p*.txt
