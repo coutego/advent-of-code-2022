@@ -3,6 +3,9 @@ from itertools import zip_longest
 from functools import reduce
 
 
+##
+## Utility functions
+##
 def main():
     for day in range(1, 26):
         for part in (1, 2):
@@ -23,32 +26,74 @@ def read_input_day(s: str, parse_line_fn: Optional[Callable] = None) -> List[Any
     return ret
 
 
-def num_increases(nums: List) -> int:
-    ret = 0
-    for i in range(0, len(nums) - 1):
-        if nums[i] < nums[i + 1]:
-            ret += 1
+def opt_int(s: str) -> Optional[int]:
+    if s.strip() == "":
+        return None
+    return int(s)
+
+
+##
+## Code
+##
+
+# Day 1
+def calories(nums: List[Optional[int]]) -> List[int]:
+    ret = []
+    acc = 0
+    for c in nums:
+        if c == None:
+            ret.append(acc)
+            acc = 0
+        else:
+            acc += c
+    if acc > 0:
+        ret.append(acc)
     return ret
 
 
-def three_window_sum(nums: List[int]) -> List[int]:
-    return list(map(lambda x, y, z: x + y + z, nums, nums[1:], nums[2:]))
+def position_max(nums: List[int]):
+    return nums.index(max(nums)) + 1
+
+
+def sum_top_n(n: int, nums: List[int]) -> int:
+    ret = 0
+    snums = set(nums)
+    for i in range(n):
+        m = max(snums)
+        ret += m
+        snums.remove(m)
+    return ret
 
 
 def test_d1():
-    t = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263]
-    assert num_increases(t) == 7
-    assert num_increases(three_window_sum(t)) == 5
-    assert d1p1() == 1722
-    assert d1p2() == 1748
+    t = [
+        1000,
+        2000,
+        3000,
+        None,
+        4000,
+        None,
+        5000,
+        6000,
+        None,
+        7000,
+        8000,
+        9000,
+        None,
+        10000,
+    ]
+    assert position_max(calories(t)) == 4
+    assert sum_top_n(3, calories(t)) == 45000
+    assert d1p1() == 71934
+    assert d1p2() == 211447
 
 
 def d1p1():
-    return num_increases(read_input_day("d1p1", int))
+    return max(calories(read_input_day("d1p1", opt_int)))
 
 
 def d1p2():
-    return num_increases(three_window_sum(read_input_day("d1p1", int)))
+    return sum_top_n(3, calories(read_input_day("d1p1", opt_int)))
 
 
 if __name__ == "__main__":
