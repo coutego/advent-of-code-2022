@@ -17,6 +17,11 @@
 
 (defn parse-int [s] (Integer/valueOf s))
 
+(defn parse-opt-int [s]
+  (if (or (nil? s) (= (st/trim s) ""))
+    nil
+    (parse-int s)))
+
 (defn -main
   "Print the solutions for all solved puzzles so far"
   [& _]
@@ -32,18 +37,22 @@
 ;;
 ;; Day 1
 ;;
-(defn num-increases [nums] (->> (map < nums (rest nums))
-                                (filter identity)
-                                count))
+(defn calories [nums]
+  (->> (partition-by nil? nums)
+       (filter #(not (some nil? %)))
+       (map #(apply + %))))
 
-(defn three-window-sum [num]
-  (map #(+ %1 %2 %3) num (rest num) (rest (rest num))))
+(defn sum-top-n [n nums]
+  (->> (sort > nums)
+       (take n)
+       (reduce +)))
 
 (defn d1p1 []
-  (->> (read-input-day "d1p1" parse-int)
-       num-increases))
+  (->> (read-input-day "d1p1" parse-opt-int)
+       calories
+       (apply max)))
 
 (defn d1p2 []
-  (->> (read-input-day "d1p1" parse-int)
-       three-window-sum
-       num-increases))
+  (->> (read-input-day "d1p1" parse-opt-int)
+       calories
+       (sum-top-n 3)))
