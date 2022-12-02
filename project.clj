@@ -1,8 +1,8 @@
 (defproject aoc22 "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
-            :url "https://www.eclipse.org/legal/epl-2.0/"}
+  :description "Solutions to Advent of Code 2022"
+  :url "https://github.com/coutego/advent-of-code-2022"
+  :license {:name "MIT"
+            :url "https://github.com/coutego/advent-of-code-2022/blob/main/LICENSE"}
   :dependencies [[org.clojure/clojure "1.11.1"]]
   :main ^:skip-aot aoc22
   :target-path "target/%s"

@@ -1,5 +1,6 @@
 (ns aoc22
-  (:require [clojure.string :as st]))
+  (:require [clojure.string :as st]
+            [clojure.test :refer [deftest is]]))
 
 ;;
 ;; Utility code
@@ -57,19 +58,34 @@
        calories
        (sum-top-n 3)))
 
+(deftest d01
+  (let [data [1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000]]
+    (is (= 24000 (apply max (calories data))))
+    (is (= 71934 (d1p1)))
+    (is (= 211447 (d1p2)))))
+
 ;;
 ;; Day 2
-;;
+;; We use (and abuse) the fact that Rock, Paper, Scissors is best
+;; described and implemented in arithmetic modulo 3
+
 (def plays ["A" "B" "C" "X" "Y" "Z"])
-(defn play2n [p] (mod (.indexOf plays p) 3))
-(defn result-play [p1 p2] (-> (- (play2n p2) (play2n p1)) inc (mod 3)))
+(defn play2n [p] (-> (.indexOf plays p), (mod 3)))
+(defn result-play [p1 p2] (-> (- (play2n p2) (play2n p1)), inc, (mod 3)))
 (defn score-play [p1 p2] (+ (inc (play2n p2)) (* 3 (result-play p1 p2))))
-(defn score-strategy [st] (->> st (map #(apply score-play %)) (reduce +)))
+(defn score-strategy [st] (->> st, (map #(apply score-play %)), (reduce +)))
 (defn parse-play [s] (st/split s #" "))
 
 (defn parse-play-win-lose [s]
   (let [[p r] (parse-play s)]
-    [p (-> r play2n dec (+ (play2n p)) (mod 3) plays)]))
+    [p (-> r, play2n, dec, (+ (play2n p)), (mod 3), plays)]))
 
-(defn d2p1 [] (-> (read-input-day "d2" parse-play) score-strategy))
-(defn d2p2 [] (-> (read-input-day "d2" parse-play-win-lose) score-strategy))
+(defn d2p1 [] (-> (read-input-day "d2" parse-play), score-strategy))
+(defn d2p2 [] (-> (read-input-day "d2" parse-play-win-lose), score-strategy))
+
+(deftest d02
+  (is (= 8 (score-play "A" "B")))
+  (is (= 1 (score-strategy [["B", "A"]])))
+  (is (= 15 (score-strategy [["A" "Y"] ["B" "X"] ["C" "Z"]])))
+  (is (= 11767 (d2p1)))
+  (is (= 13886 (d2p2))))

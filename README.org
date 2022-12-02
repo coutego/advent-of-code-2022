@@ -24,10 +24,10 @@ $ python3 src/aoc22.py
 #+end_src
 
 ** Clojure
-If you have leiningen installed, it's the standard way:
+If you have leiningen installed, it's (almost) the standard way:
 *** Tests
 #+begin_src shell
-$ lein run
+$ lein test aoc22 # Note tests are in the ns 'aoc22' itself
 #+end_src
 
 *** Program
