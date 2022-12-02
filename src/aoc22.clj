@@ -48,11 +48,33 @@
        (reduce +)))
 
 (defn d1p1 []
-  (->> (read-input-day "d1p1" parse-opt-int)
+  (->> (read-input-day "d1" parse-opt-int)
        calories
        (apply max)))
 
 (defn d1p2 []
-  (->> (read-input-day "d1p1" parse-opt-int)
+  (->> (read-input-day "d1" parse-opt-int)
        calories
        (sum-top-n 3)))
+
+;;
+;; Day 2
+;;
+(def plays ["A" "B" "C" "X" "Y" "Z"])
+(defn play2n [p] (mod (.indexOf plays p) 3))
+(defn play [p1 p2] (mod (inc (- (play2n p2) (play2n p1))) 3))
+(defn score [p1 p2] (+ (inc (play2n p2)) (* 3 (play p1 p2))))
+(defn score-strategy [st] (->> st (map #(apply score %)) (reduce +)))
+(defn parse-play [s] (st/split s #" "))
+
+(defn parse-play-win-lose [s]
+  (let [[p r] (parse-play s)]
+    [p (-> r play2n dec (+ (play2n p)) (mod 3) plays)]))
+
+(defn d2p1 []
+  (->> (read-input-day "d2" parse-play)
+       score-strategy))
+
+(defn d2p2 []
+  (->> (read-input-day "d2" parse-play-win-lose)
+       score-strategy))
