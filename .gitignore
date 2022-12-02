@@ -14,3 +14,4 @@ pom.xml.asc
 /doc/
 /src/__pycache__/
 /resources/aoc22/d*p*.txt
+/resources/aoc22/*.txt
