@@ -36,4 +36,6 @@ $ lein test
 #+end_src
 
 ** Elisp
+Evaluate the buffer. If everything works, a message "Everything works" will show in the
+minibuffer.
 You very likely don't need any instructions.
