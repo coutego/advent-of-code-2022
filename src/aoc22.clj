@@ -31,9 +31,8 @@
                   (when-not (nil? f)
                     (str "Result for day " day ", part " part ": " (f)))))]
     (->> (for [day (range 1 26), part (range 1 3)] (run-f day part))
-         (filter (comp not nil?))
-         (map println)
-         doall)))
+         (filter identity)
+         (run! println))))
 
 ;;
 ;; Day 1
