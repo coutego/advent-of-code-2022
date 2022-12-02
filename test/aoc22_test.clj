@@ -9,10 +9,9 @@
     (is (= 211447 (c/d1p2)))))
 
 (deftest d02
-  (let [data [["A" "Y"] ["B" "X"] ["C" "Z"]]]
-    (is (= 15 (c/score-strategy data)))
-    (is (= 8 (c/score-strategy [["A", "B"]])))
-    (is (= 1 (c/score-strategy [["B", "A"]])))
-    (is (= 6 (c/score-strategy [["C", "C"]])))
-    (is (= 11767 (c/d2p1)))
-    (is (= 13886 (c/d2p2)))))
+  (is (= 8 (c/score-play "A" "B")))
+  (is (= 1 (c/score-strategy [["B", "A"]])))
+  (is (= 6 (c/score-strategy [["C", "C"]])))
+  (is (= 15 (c/score-strategy [["A" "Y"] ["B" "X"] ["C" "Z"]])))
+  (is (= 11767 (c/d2p1)))
+  (is (= 13886 (c/d2p2))))

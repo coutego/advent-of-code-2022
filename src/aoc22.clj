@@ -62,19 +62,14 @@
 ;;
 (def plays ["A" "B" "C" "X" "Y" "Z"])
 (defn play2n [p] (mod (.indexOf plays p) 3))
-(defn play [p1 p2] (mod (inc (- (play2n p2) (play2n p1))) 3))
-(defn score [p1 p2] (+ (inc (play2n p2)) (* 3 (play p1 p2))))
-(defn score-strategy [st] (->> st (map #(apply score %)) (reduce +)))
+(defn result-play [p1 p2] (-> (- (play2n p2) (play2n p1)) inc (mod 3)))
+(defn score-play [p1 p2] (+ (inc (play2n p2)) (* 3 (result-play p1 p2))))
+(defn score-strategy [st] (->> st (map #(apply score-play %)) (reduce +)))
 (defn parse-play [s] (st/split s #" "))
 
 (defn parse-play-win-lose [s]
   (let [[p r] (parse-play s)]
     [p (-> r play2n dec (+ (play2n p)) (mod 3) plays)]))
 
-(defn d2p1 []
-  (->> (read-input-day "d2" parse-play)
-       score-strategy))
-
-(defn d2p2 []
-  (->> (read-input-day "d2" parse-play-win-lose)
-       score-strategy))
+(defn d2p1 [] (-> (read-input-day "d2" parse-play) score-strategy))
+(defn d2p2 [] (-> (read-input-day "d2" parse-play-win-lose) score-strategy))
