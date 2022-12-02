@@ -8,7 +8,7 @@ complete them.
 
 * How
 I'm not putting in git the input files. If you want to run the tests, you will
-have to put your own inputs in files ~resources/aoc22/d[n]p[m].txt~.
+have to put your own inputs in files ~resources/aoc22/d[n].txt~.
 
 For running the code you can do as follows:
 
