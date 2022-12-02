@@ -23,6 +23,7 @@
 (require 'f)
 (require 's)
 (require 'cl-lib)
+(require 'ert)
 
 ;;
 ;; General utility code
@@ -41,22 +42,29 @@ It applies 'parse-line-fn' to all lines, if indicated."
       nil
     (string-to-number s)))
 
-(defun my-main ()
-  (let* ((nums
-          (cl-loop for i from 1 to 25
-                   append (cl-loop for j from 1 to 2
-                                   collect (list i j))))
-         (fnames (-map (lambda (el) (concat "my-d"
-                                            (number-to-string (car el))
-                                            "p"
-                                            (number-to-string (cadr el))))
-                       nums)))
-    (->> (-map
-          (lambda (name)
-            (let ((sym (intern name)))
-              (when (fboundp sym) (funcall sym))))
-          fnames)
-         (-filter #'identity))))
+(defun my-run-all ()
+  "Run all the functions for the different days"
+  (interactive)
+  (let* ((fnames (cl-loop for i from 1 to 25
+                          append (cl-loop for j from 1 to 2
+                                          collect (concat "my-d"
+                                                          (number-to-string i)
+                                                          "p"
+                                                          (number-to-string j))))))
+    (->> (--map (let ((sym (intern it)))
+                  (when (fboundp sym)
+                    (format "Result for day %s, part %s: %s\n"
+                            (substring it 4 5)
+                            (substring it 6 7)
+                            (funcall sym))))
+                fnames)
+        (-filter #'identity)
+        (apply #'concat)
+        (message))))
+
+(defun my-run-all-tests ()
+  (interactive)
+  (ert t))
 
 ;;
 ;; Code
@@ -83,10 +91,12 @@ It applies 'parse-line-fn' to all lines, if indicated."
        my-calories
        (my-sum-top-n 3)))
 
-(let ((data '(1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000)))
-   (cl-assert (= 24000 (apply #'max (my-calories data)))))
-(cl-assert (= 71934 (my-d1p1)))
-(cl-assert (= 211447 (my-d1p2)))
+(ert-deftest my-erttest-d1 ()
+  "Tests for day 1"
+  (let ((data '(1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000)))
+    (should (equal 24000 (apply #'max (my-calories data)))))
+  (should (equal 71934 (my-d1p1)))
+  (should (equal 211447 (my-d1p2))))
 
 ;; Day 2
 (defvar my-plays '("A" "B" "C" "X" "Y" "Z"))
@@ -106,15 +116,18 @@ It applies 'parse-line-fn' to all lines, if indicated."
 (defun my-d2p1 () (-> (my-read-input-day "d2" #'my-parse-play t) my-score-strategy))
 (defun my-d2p2 () (-> (my-read-input-day "d2" #'my-parse-play-win-lose t) my-score-strategy))
 
-(cl-assert (= 8 (my-score-play "A" "B")))
-(cl-assert (= 1 (my-score-strategy '(("B" "A")))))
-(cl-assert (= 6 (my-score-strategy '(("C" "C")))))
-(cl-assert (= 15 (my-score-strategy '(("A" "Y") ("B" "X") ("C" "Z")))))
-(cl-assert (= 11767 (my-d2p1)))
-(cl-assert (= 13886 (my-d2p2)))
-
-
-(message "Everything works")
+(ert-deftest my-erttest-d2 ()
+  "Tests for day 2"
+  (should (equal 8 (my-score-play "A" "B")))
+  (should (equal 1 (my-score-strategy '(("B" "A")))))
+  (should (equal 6 (my-score-strategy '(("C" "C")))))
+  (should (equal 15 (my-score-strategy '(("A" "Y") ("B" "X") ("C" "Z")))))
+  (should (equal 11767 (my-d2p1)))
+  (should (equal 13886 (my-d2p2))))
 
 (provide 'aoc22)
-;;; aoc22.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("my-" . "aoc22-"))
+;; End:
+;; aoc22.el ends here
