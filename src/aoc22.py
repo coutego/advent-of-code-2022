@@ -97,36 +97,48 @@ def d1p2():
 
 
 # Day 2
-values_option = {"A": 1, "B": 2, "C": 3}
-equivalences = {"X": "A", "Y": "B", "Z": "C"}
+# Rock, Paper, Scissors is better modeled as values module 3. This allows us to
+# just use mod aritmethic to calculate results. One more always wins and 2 + 1 = 0 (mod 3)
+# so 0 wins to 2.
+plays = ["A", "B", "C", "X", "Y", "Z"]
 
 
-def result_play(a, b) -> int:
-    if a == b:
-        return 1
-    if a == "A":
-        return 0 if b == "C" else 2
-    if a == "B":
-        return 0 if b == "A" else 2
-    if a == "C":
-        return 0 if b == "B" else 2
+def play2n(p: str) -> int:
+    return plays.index(p) % 3
 
 
-def score_play(p: Tuple) -> int:
-    (play, reply) = p
-    score_choice = 1
-    if reply == "B":
-        score_choice = 2
-    if reply == "C":
-        score_choice = 3
-    return 3 * result_play(play, reply) + score_choice
+def result_play(p1: str, p2: str) -> int:
+    return (play2n(p2) - play2n(p1) + 1) % 3
+
+
+def score_play(p1: str, p2: str) -> int:
+    return 1 + play2n(p2) + 3 * result_play(p1, p2)
 
 
 def score_strategy(st: List) -> int:
     ret = 0
-    for p in st:
-        ret += score_play(p)
+    for (a, b) in st:
+        ret += score_play(a, b)
     return ret
+
+
+def parse_play(s: str) -> Tuple:
+    return tuple(s.split())
+
+
+def parse_play_win_lose(s: str) -> Tuple:
+    (p, r) = parse_play(s)
+    idx = (play2n(p) - 1 + play2n(r)) % 3
+    r = plays[idx]
+    return (p, r)
+
+
+def d2p1():
+    return score_strategy(read_input_day("d2", parse_play))
+
+
+def d2p2():
+    return score_strategy(read_input_day("d2", parse_play_win_lose))
 
 
 def test_d2():
@@ -136,37 +148,6 @@ def test_d2():
     assert score_strategy([("A", "B"), ("B", "A"), ("C", "C")]) == 15
     assert d2p1() == 11767
     assert d2p2() == 13886
-
-
-def parse_play(s: str) -> Tuple:
-    (p, r) = tuple(s.split())
-    r = equivalences[r]
-    return (p, r)
-
-
-winners = {"A": "B", "B": "C", "C": "A"}
-
-
-def win_lose_to_choice(p: str, r: str) -> str:
-    if r == "Y":
-        return p
-    if r == "Z":
-        return winners[p]
-    return next(k for k, v in winners.items() if v == p)
-
-
-def parse_play2(s: str) -> Tuple:
-    (p, r) = tuple(s.split())
-    r = win_lose_to_choice(p, r)
-    return (p, r)
-
-
-def d2p1():
-    return score_strategy(read_input_day("d2", parse_play))
-
-
-def d2p2():
-    return score_strategy(read_input_day("d2", parse_play2))
 
 
 if __name__ == "__main__":
