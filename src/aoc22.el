@@ -125,6 +125,51 @@ It applies 'parse-line-fn' to all lines, if indicated."
   (should (equal 11767 (my-d2p1)))
   (should (equal 13886 (my-d2p2))))
 
+;; Day 3
+(defun my-priority (it) (if (> it 91) (- it 96) (- it 38))) ;; ascii codes of chars
+(defun my-string-to-chars (s) (-map #'identity s))
+
+(defun my-take-or-drop-half (t-d s)
+  (-let ((s (my-string-to-chars s))
+         (n (/ (length s) 2)))
+    (if t-d (-take n s) (-drop n s))))
+
+(defun my-half-n (n s) (-> (= 0 (mod n 2)) (my-take-or-drop-half s)))
+(defun my-item-both-comp (rucksack) (car (cl-intersection (my-half-n 0 rucksack) (my-half-n 1 rucksack))))
+(defun my-sum-priorities (rucksacks) (->> rucksacks (-map #'my-item-both-comp) (-map #'my-priority) (-reduce #'+)))
+(defun my-common-item (rucksacks) (->> rucksacks (-map #'my-string-to-chars) (apply #'cl-intersection) car))
+(defun my-sum-badges (groups) (->> groups (-map #'my-common-item) (-map #'my-priority) (-reduce #'+)))
+
+(defun my-d3p1 () (->> (my-read-input-day "d3" #'identity t) my-sum-priorities))
+(defun my-d3p2 () (->> (my-read-input-day "d3" #'identity t) (-partition 3) my-sum-badges))
+
+(ert-deftest d03 ()
+  "Tests for day 3"
+  (should (equal '(97 98) (my-half-n 0 "abaZ")))
+  (should (equal '(97 90) (my-take-or-drop-half nil "abaZ")))
+  (should (equal ?a (my-item-both-comp "abaZ")))
+  (should (equal 28 (my-sum-priorities ["abac" "aAbA"])))
+  (let ((data '("vJrwpWtwJgWrhcsFMMfFFhFp"
+                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+                "PmmdzqPrVvPwwTWBwg"
+                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+                "ttgJtRGJQctTZtZT"
+                "CrZsJsPPZsGzwwsLwLmpwMDw")))
+    (should (equal 157 (my-sum-priorities data)))
+    (should (equal 70 (my-sum-badges (-partition 3 data)))))
+  ;; (should (equal 7845 (my-d3p1)))
+  ;; (should (equal 2790 (my-d3p2))))
+  )
+
+(let ((data '("vJrwpWtwJgWrhcsFMMfFFhFp"
+                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+                "PmmdzqPrVvPwwTWBwg"
+                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+                "ttgJtRGJQctTZtZT"
+                "CrZsJsPPZsGzwwsLwLmpwMDw")))
+    (my-sum-badges (-partition 3 data)))
+
+
 (provide 'aoc22)
 
 ;; Local Variables:
