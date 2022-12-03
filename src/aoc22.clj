@@ -78,12 +78,12 @@
   (is (= 13886 (d2p2))))
 
 ;; Day 3
-(defn priority [it] (if (> (int it) 91) (- (int it) 96) (- (int it) 38))) ;; ascii codes of chars
-(defn take-or-drop-half [t-d xs] (let [n (/ (count xs) 2)] (if t-d (take n xs) (drop n xs))))
-(defn half-n [n xs] (-> (= 0 (mod n 2)), (take-or-drop-half xs), set))
-(defn item-both-comp [rucksack] (first (set/intersection (half-n 0 rucksack) (half-n 1 rucksack))))
-(defn sum-priorities [rucksacks] (->> rucksacks, (map item-both-comp), (map priority), sum))
-(defn common-item [rucksacks] (->> rucksacks, (map set), (apply set/intersection), first))
+(defn priority [it] (if (> (int it) 91) (- (int it) 96) (- (int it) 38))) ;; ascii codes
+(defn take-drop-half [tk? xs] (let [n (/ (count xs) 2)] (if tk? (take n xs) (drop n xs))))
+(defn half-n [n xs] (-> (= 0 (mod n 2)), (take-drop-half xs), set))
+(defn item-both-comp [rsack] (first (set/intersection (half-n 0 rsack) (half-n 1 rsack))))
+(defn sum-priorities [rsacks] (->> rsacks, (map item-both-comp), (map priority), sum))
+(defn common-item [rsacks] (->> rsacks, (map set), (apply set/intersection), first))
 (defn sum-badges [groups] (->> groups, (map common-item), (map priority), sum))
 
 (defn d3p1 [] (->> (read-input-day "d3"), sum-priorities))
@@ -91,7 +91,7 @@
 
 (deftest d03
   (is (= #{\a \b} (set (half-n 0 "abaZ"))))
-  (is (= [\a \Z] (vec (take-or-drop-half false "abaZ"))))
+  (is (= [\a \Z] (vec (take-drop-half false "abaZ"))))
   (is (= \a (item-both-comp "abaZ")))
   (is (= 28 (sum-priorities ["abac" "aAbA"])))
   (let [data ["vJrwpWtwJgWrhcsFMMfFFhFp"
