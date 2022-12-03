@@ -1,6 +1,7 @@
 (ns aoc22
   (:require [clojure.string :as st]
-            [clojure.test :refer [deftest is]]))
+            [clojure.test :refer [deftest is]]
+            [clojure.set :as set]))
 
 ;;
 ;; Utility code
@@ -88,3 +89,31 @@
   (is (= 15 (score-strategy [["A" "Y"] ["B" "X"] ["C" "Z"]])))
   (is (= 11767 (d2p1)))
   (is (= 13886 (d2p2))))
+
+;; Day 3
+(defn priority [it] (if (> (int it) 91) (- (int it) 96) (- (int it) 38))) ;; ascii codes of chars
+(defn take-or-drop-half [t-d coll] (let [n (/ (count coll) 2)] (if t-d (take n coll) (drop n coll))))
+(defn half-n [n coll] (-> (= 0 (mod n 2)), (take-or-drop-half coll), set))
+(defn item-both-comp [rucksack] (first (set/intersection (half-n 0 rucksack) (half-n 1 rucksack))))
+(defn sum-priorities [rucksacks] (->> rucksacks, (map item-both-comp), (map priority), (reduce +)))
+(defn common-item [rucksacks] (->> rucksacks, (map set), (apply set/intersection), first))
+(defn sum-badges [groups] (->> groups, (map common-item), (map priority), (reduce +)))
+
+(defn d3p1 [] (->> (read-input-day "d3"), sum-priorities))
+(defn d3p2 [] (->> (read-input-day "d3"), (partition 3), sum-badges))
+
+(deftest d03
+  (is (= #{\a \b} (set (half-n 0 "abaZ"))))
+  (is (= [\a \Z] (vec (take-or-drop-half false "abaZ"))))
+  (is (= \a (item-both-comp "abaZ")))
+  (is (= 28 (sum-priorities ["abac" "aAbA"])))
+  (let [data ["vJrwpWtwJgWrhcsFMMfFFhFp"
+              "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+              "PmmdzqPrVvPwwTWBwg"
+              "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+              "ttgJtRGJQctTZtZT"
+              "CrZsJsPPZsGzwwsLwLmpwMDw"]]
+    (is (= 157 (sum-priorities data)))
+    (is (= 70 (sum-badges (partition 3 data)))))
+  (is (= 7845 (d3p1)))
+  (is (= 2790 (d3p2))))
