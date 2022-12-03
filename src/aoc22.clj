@@ -35,28 +35,17 @@
          (filter identity)
          (run! println))))
 
-;;
+(defn sum [nums] (reduce + nums))
+(defn map-apply [f xs] (map #(apply f %) xs))
+
 ;; Day 1
-;;
-(defn calories [nums]
-  (->> (partition-by nil? nums)
-       (filter #(not (some nil? %)))
-       (map #(apply + %))))
+(defn has-no-nils [xs] (not (some nil? xs)))
+(defn partition-by-nils [xs] (->> (partition-by nil? xs) (filter has-no-nils)))
+(defn calories [nums] (->> (partition-by-nils nums) (map-apply +)))
+(defn sum-top-n [n nums] (->> (sort > nums), (take n), sum))
 
-(defn sum-top-n [n nums]
-  (->> (sort > nums)
-       (take n)
-       (reduce +)))
-
-(defn d1p1 []
-  (->> (read-input-day "d1" parse-opt-int)
-       calories
-       (apply max)))
-
-(defn d1p2 []
-  (->> (read-input-day "d1" parse-opt-int)
-       calories
-       (sum-top-n 3)))
+(defn d1p1 [] (->> (read-input-day "d1" parse-opt-int), calories, (apply max)))
+(defn d1p2 [] (->> (read-input-day "d1" parse-opt-int), calories, (sum-top-n 3)))
 
 (deftest d01
   (let [data [1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000]]
@@ -64,16 +53,14 @@
     (is (= 71934 (d1p1)))
     (is (= 211447 (d1p2)))))
 
-;;
 ;; Day 2
 ;; We use (and abuse) the fact that Rock, Paper, Scissors is best
 ;; described and implemented in arithmetic modulo 3
-
 (def plays ["A" "B" "C" "X" "Y" "Z"])
 (defn play2n [p] (-> (.indexOf plays p), (mod 3)))
 (defn result-play [p1 p2] (-> (- (play2n p2) (play2n p1)), inc, (mod 3)))
 (defn score-play [p1 p2] (+ (inc (play2n p2)) (* 3 (result-play p1 p2))))
-(defn score-strategy [st] (->> st, (map #(apply score-play %)), (reduce +)))
+(defn score-strategy [st] (->> st, (map-apply score-play), sum))
 (defn parse-play [s] (st/split s #" "))
 
 (defn parse-play-win-lose [s]
@@ -92,12 +79,12 @@
 
 ;; Day 3
 (defn priority [it] (if (> (int it) 91) (- (int it) 96) (- (int it) 38))) ;; ascii codes of chars
-(defn take-or-drop-half [t-d coll] (let [n (/ (count coll) 2)] (if t-d (take n coll) (drop n coll))))
-(defn half-n [n coll] (-> (= 0 (mod n 2)), (take-or-drop-half coll), set))
+(defn take-or-drop-half [t-d xs] (let [n (/ (count xs) 2)] (if t-d (take n xs) (drop n xs))))
+(defn half-n [n xs] (-> (= 0 (mod n 2)), (take-or-drop-half xs), set))
 (defn item-both-comp [rucksack] (first (set/intersection (half-n 0 rucksack) (half-n 1 rucksack))))
-(defn sum-priorities [rucksacks] (->> rucksacks, (map item-both-comp), (map priority), (reduce +)))
+(defn sum-priorities [rucksacks] (->> rucksacks, (map item-both-comp), (map priority), sum))
 (defn common-item [rucksacks] (->> rucksacks, (map set), (apply set/intersection), first))
-(defn sum-badges [groups] (->> groups, (map common-item), (map priority), (reduce +)))
+(defn sum-badges [groups] (->> groups, (map common-item), (map priority), sum))
 
 (defn d3p1 [] (->> (read-input-day "d3"), sum-priorities))
 (defn d3p2 [] (->> (read-input-day "d3"), (partition 3), sum-badges))
