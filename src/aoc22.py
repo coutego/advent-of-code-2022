@@ -1,6 +1,7 @@
 from typing import Callable, List, Tuple, Optional, Any
 from itertools import zip_longest
 from functools import reduce
+import re
 
 
 ##
@@ -148,6 +149,52 @@ def test_d2():
     assert score_strategy([("A", "B"), ("B", "A"), ("C", "C")]) == 15
     assert d2p1() == 11767
     assert d2p2() == 13886
+
+
+# Day 4
+Range = Tuple[int, int]
+
+
+def fully_contained(r1: Range, r2: Range) -> bool:
+    return r1[0] >= r2[0] and r1[1] <= r2[1]
+
+
+def fully_overlap(r1: Range, r2: Range) -> bool:
+    return fully_contained(r1, r2) or fully_contained(r2, r1)
+
+
+def in_range(r1: Range, n: int) -> bool:
+    (a, b) = r1
+    return a <= n and n <= b
+
+
+def range_in_range(r1: Range, r2: Range) -> bool:
+    return in_range(r1, r2[0]) or in_range(r1, r2[1])
+
+
+def overlap(r1: Range, r2: Range) -> bool:
+    return range_in_range(r1, r2) or range_in_range(r2, r1)
+
+
+def parse_d4(line: str) -> Any:
+    v = re.split("[,-]", line)
+    v = list(map(int, v))
+    return [[v[0], v[1]], [v[2], v[3]]]
+
+
+def d4p1() -> int:
+    return len(
+        [True for (r1, r2) in read_input_day("d4", parse_d4) if fully_overlap(r1, r2)]
+    )
+
+
+def d4p2() -> int:
+    return len([True for (r1, r2) in read_input_day("d4", parse_d4) if overlap(r1, r2)])
+
+
+def test_d4():
+    assert 644 == d4p1()
+    assert 926 == d4p2()
 
 
 if __name__ == "__main__":
