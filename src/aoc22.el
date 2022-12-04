@@ -28,13 +28,13 @@
 ;;
 ;; General utility code
 ;;
-(defun my-read-input-day (s &optional parse-line-fn skip-empty-lines)
+(defun my-read-input-day (s &optional parse-line-fn keep-empty-lines?)
   "Read the filename 's'.txt from resources.
 It applies 'parse-line-fn' to all lines, if indicated."
   (let* ((fname (concat "../resources/aoc22/" s ".txt"))
          (ret   (s-lines (f-read fname)))
          (ret   (if parse-line-fn (-map parse-line-fn ret) ret))
-         (ret   (if skip-empty-lines (-filter #'identity ret) ret)))
+         (ret   (if (not keep-empty-lines?) (-filter #'identity ret) ret)))
     ret))
 
 (defun my-parse-opt-int (s)
@@ -62,6 +62,9 @@ It applies 'parse-line-fn' to all lines, if indicated."
         (apply #'concat)
         (message))))
 
+(defun my-parse-int (s)
+  (string-to-number s))
+
 (defun my-run-all-tests ()
   (interactive)
   (ert t))
@@ -82,12 +85,12 @@ It applies 'parse-line-fn' to all lines, if indicated."
        (-reduce #'+)))
 
 (defun my-d1p1 ()
-  (->> (my-read-input-day "d1" #'my-parse-opt-int)
+  (->> (my-read-input-day "d1" #'my-parse-opt-int t)
        my-calories
        (apply #'max)))
 
 (defun my-d1p2 ()
-  (->> (my-read-input-day "d1" #'my-parse-opt-int)
+  (->> (my-read-input-day "d1" #'my-parse-opt-int t)
        my-calories
        (my-sum-top-n 3)))
 
@@ -113,8 +116,8 @@ It applies 'parse-line-fn' to all lines, if indicated."
         nil
       (list p (-> r my-play2n (- 1) (+ (my-play2n p)) (mod 3) (nth my-plays))))))
 
-(defun my-d2p1 () (-> (my-read-input-day "d2" #'my-parse-play t) my-score-strategy))
-(defun my-d2p2 () (-> (my-read-input-day "d2" #'my-parse-play-win-lose t) my-score-strategy))
+(defun my-d2p1 () (-> (my-read-input-day "d2" #'my-parse-play) my-score-strategy))
+(defun my-d2p2 () (-> (my-read-input-day "d2" #'my-parse-play-win-lose) my-score-strategy))
 
 (ert-deftest my-erttest-d2 ()
   "Tests for day 2"
@@ -140,35 +143,80 @@ It applies 'parse-line-fn' to all lines, if indicated."
 (defun my-common-item (rucksacks) (->> rucksacks (-map #'my-string-to-chars) (apply #'cl-intersection) car))
 (defun my-sum-badges (groups) (->> groups (-map #'my-common-item) (-map #'my-priority) (-reduce #'+)))
 
-(defun my-d3p1 () (->> (my-read-input-day "d3" #'identity t) my-sum-priorities))
-(defun my-d3p2 () (->> (my-read-input-day "d3" #'identity t) (-partition 3) my-sum-badges))
+(defun my-d3p1 () (->> (my-read-input-day "d3" #'identity) my-sum-priorities))
+(defun my-d3p2 () (->> (my-read-input-day "d3" #'identity) (-partition 3) my-sum-badges))
 
-(ert-deftest d03 ()
-  "Tests for day 3"
-  (should (equal '(97 98) (my-half-n 0 "abaZ")))
-  (should (equal '(97 90) (my-take-or-drop-half nil "abaZ")))
-  (should (equal ?a (my-item-both-comp "abaZ")))
-  (should (equal 28 (my-sum-priorities ["abac" "aAbA"])))
-  (let ((data '("vJrwpWtwJgWrhcsFMMfFFhFp"
-                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
-                "PmmdzqPrVvPwwTWBwg"
-                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
-                "ttgJtRGJQctTZtZT"
-                "CrZsJsPPZsGzwwsLwLmpwMDw")))
-    (should (equal 157 (my-sum-priorities data)))
-    (should (equal 70 (my-sum-badges (-partition 3 data)))))
-  ;; (should (equal 7845 (my-d3p1)))
-  ;; (should (equal 2790 (my-d3p2))))
-  )
+;; (ert-deftest d03 ()
+;;   "Tests for day 3"
+;;   (should (equal '(97 98) (my-half-n 0 "abaZ")))
+;;   (should (equal '(97 90) (my-take-or-drop-half nil "abaZ")))
+;;   (should (equal ?a (my-item-both-comp "abaZ")))
+;;   (should (equal 28 (my-sum-priorities ["abac" "aAbA"])))
+;;   (let ((data '("vJrwpWtwJgWrhcsFMMfFFhFp"
+;;                 "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
+;;                 "PmmdzqPrVvPwwTWBwg"
+;;                 "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
+;;                 "ttgJtRGJQctTZtZT"
+;;                 "CrZsJsPPZsGzwwsLwLmpwMDw")))
+;;     (should (equal 157 (my-sum-priorities data)))
+;;     (should (equal 70 (my-sum-badges (-partition 3 data)))))
+;;   ;; (should (equal 7845 (my-d3p1)))
+;;   ;; (should (equal 2790 (my-d3p2))))
+;;   )
 
-(let ((data '("vJrwpWtwJgWrhcsFMMfFFhFp"
-                "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL"
-                "PmmdzqPrVvPwwTWBwg"
-                "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn"
-                "ttgJtRGJQctTZtZT"
-                "CrZsJsPPZsGzwwsLwLmpwMDw")))
-    (my-sum-badges (-partition 3 data)))
 
+
+;; Day 4
+(defun my-fully-contained? (s1 s2)
+  (and (>= (car s1) (car s2))
+       (<= (cadr s1) (cadr s2))))
+
+(defun my-fully-overlap? (rs)
+  (-let (((s1 s2) rs))
+    (or (my-fully-contained? s1 s2)
+        (my-fully-contained? s2 s1))))
+
+(defun my-in-range? (r n)
+  (-let (((a b) r))
+    (and (<= a n)
+         (<= n b))))
+
+(defun my-range-in-range? (r1 r2)
+  (-let (((a b) r2))
+    (or (my-in-range? r1 a)
+        (my-in-range? r1 b))))
+
+(defun my-overlap? (rs)
+  (-let (((s1 s2) rs))
+    (or (my-range-in-range? s1 s2)
+        (my-range-in-range? s2 s1))))
+
+(defun my-parse-d4 (line)
+  (->> (s-split "[,-]" line )
+       (-map #'my-parse-int)
+       (-partition 2)))
+
+(defun d4p1 ()
+  (->> (my-read-input-day "d4" #'my-parse-d4)
+       (-filter #'my-fully-overlap?)
+       seq-length))
+
+(defun d4p2 ()
+  (->> (my-read-input-day "d4" #'my-parse-d4)
+       (-filter #'my-overlap?)
+       seq-length))
+
+(ert-deftest d04 ()
+    "Test d04"
+  (should (my-fully-contained? '(3 7) '(2 8)))
+  (should (my-fully-overlap? '((2 8) (3 7)) ))
+  ;; (should (equal 2
+  ;;                (->> (my-read-input-day "d4-test" #'my-parse-d4)
+  ;;                     (-filter fully-overlap?)
+  ;;                     #'seq-length)))
+  (should (equal 644 (d4p1)))
+  ;; (should (equal 4 (->> (read-input-day "d4-test" parse-d4) (filter overlap?) #'seq-length)))
+  (should (equal 926 (d4p2))))
 
 (provide 'aoc22)
 
