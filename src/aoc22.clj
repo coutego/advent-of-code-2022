@@ -192,7 +192,6 @@
   (is (= 2790 (d3p2))))
 
 ;; Day 4
-
 (defn fully-contained? [s1 s2]
   (and (>= (first s1) (first s2))
        (<= (second s1) (second s2))))
@@ -205,9 +204,9 @@
   (and (<= a n)
        (<= n b)))
 
-(defn range-in-range? [[r1 r2] b]
-  (or (in-range? b r1)
-      (in-range? b r2)))
+(defn range-in-range? [r [a b]]
+  (or (in-range? r a)
+      (in-range? r b)))
 
 (defn overlap? [[s1 s2]]
   (or (range-in-range? s1 s2)
@@ -216,9 +215,7 @@
 (defn parse-d4 [line]
   (->> (st/split line #"[,-]")
        (map parse-int)
-       (partition 2)
-       (map vec)
-       vec))
+       (partition 2)))
 
 (defn d4p1 []
   (->> (read-input-day "d4" parse-d4)
