@@ -37,6 +37,7 @@
 
 (defn sum [nums] (reduce + nums))
 (defn map-apply [f xs] (map #(apply f %) xs))
+(defn in? [xs el] (some #(= el %) xs))
 
 ;; Day 1
 (defn has-no-nils [xs] (not (some nil? xs)))
@@ -104,3 +105,52 @@
     (is (= 70 (sum-badges (partition 3 data)))))
   (is (= 7845 (d3p1)))
   (is (= 2790 (d3p2))))
+
+;; Day 4
+
+(defn fully-contained? [s1 s2]
+  (and (>= (first s1) (first s2))
+       (<= (second s1) (second s2))))
+
+(defn fully-overlap? [[s1 s2]]
+  (or (fully-contained? s1 s2)
+      (fully-contained? s2 s1)))
+
+(defn in-range? [[a b] n]
+  (and (<= a n)
+       (<= n b)))
+
+(defn range-in-range? [[r1 r2] b]
+  (or (in-range? b r1)
+      (in-range? b r2)))
+
+(defn overlap? [[s1 s2]]
+  (or (range-in-range? s1 s2)
+      (range-in-range? s2 s1)))
+
+(overlap? [[5 9] [2 4]])
+
+(defn parse-d4 [line]
+  (->> (st/split line #"[,-]")
+       (map parse-int)
+       (partition 2)
+       (map vec)
+       vec))
+
+(defn d4p1 []
+  (->> (read-input-day "d4" parse-d4)
+       (filter fully-overlap?)
+       count))
+
+(defn d4p2 []
+  (->> (read-input-day "d4" parse-d4)
+       (filter overlap?)
+       count))
+
+(deftest d04
+  (is (fully-contained? [3 7] [2 8]))
+  (is (fully-overlap? [[2 8] [3 7]] ))
+  (is (= 2 (->> (read-input-day "d4-test" parse-d4) (filter fully-overlap?) count)))
+  (is (= 644 (d4p1)))
+  (is (= 4 (->> (read-input-day "d4-test" parse-d4) (filter overlap?) count)))
+  (is (= 926 (d4p2))))
