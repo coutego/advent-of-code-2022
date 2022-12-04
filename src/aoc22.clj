@@ -31,22 +31,44 @@
                 (let [f (find-var (symbol (str prefix "/" (str "d" day "p" part))))]
                   (when-not (nil? f)
                     (str "Result for day " day ", part " part ": " (f)))))]
-    (->> (for [day (range 1 26), part (range 1 3)] (run-f day part))
+    (->> (for [day (range 1 26)
+               part (range 1 3)]
+           (run-f day part))
          (filter identity)
          (run! println))))
 
-(defn sum [nums] (reduce + nums))
-(defn map-apply [f xs] (map #(apply f %) xs))
-(defn in? [xs el] (some #(= el %) xs))
+(defn map-apply [f xs]
+  (map #(apply f %) xs))
+
+(defn in? [xs el]
+  (some #(= el %) xs))
 
 ;; Day 1
-(defn has-no-nils [xs] (not (some nil? xs)))
-(defn partition-by-nils [xs] (->> (partition-by nil? xs) (filter has-no-nils)))
-(defn calories [nums] (->> (partition-by-nils nums) (map-apply +)))
-(defn sum-top-n [n nums] (->> (sort > nums), (take n), sum))
+(defn has-no-nils [xs]
+  (not (some nil? xs)))
 
-(defn d1p1 [] (->> (read-input-day "d1" parse-opt-int), calories, (apply max)))
-(defn d1p2 [] (->> (read-input-day "d1" parse-opt-int), calories, (sum-top-n 3)))
+(defn partition-by-nils [xs]
+  (->> (partition-by nil? xs)
+       (filter has-no-nils)))
+
+(defn calories [nums]
+  (->> (partition-by-nils nums)
+       (map-apply +)))
+
+(defn sum-top-n [n nums]
+  (->> (sort > nums)
+       (take n)
+       (reduce +)))
+
+(defn d1p1 []
+  (->> (read-input-day "d1" parse-opt-int)
+       calories
+       (apply max)))
+
+(defn d1p2 []
+  (->> (read-input-day "d1" parse-opt-int)
+       calories
+       (sum-top-n 3)))
 
 (deftest d01
   (let [data [1000 2000 3000 nil 4000 nil 5000 6000 nil 7000 8000 9000 nil 10000]]
@@ -58,37 +80,100 @@
 ;; We use (and abuse) the fact that Rock, Paper, Scissors is best
 ;; described and implemented in arithmetic modulo 3
 (def plays ["A" "B" "C" "X" "Y" "Z"])
-(defn play2n [p] (-> (.indexOf plays p), (mod 3)))
-(defn result-play [p1 p2] (-> (- (play2n p2) (play2n p1)), inc, (mod 3)))
-(defn score-play [p1 p2] (+ (inc (play2n p2)) (* 3 (result-play p1 p2))))
-(defn score-strategy [st] (->> st, (map-apply score-play), sum))
-(defn parse-play [s] (st/split s #" "))
+
+(defn play2n [p]
+  (-> (.indexOf plays p)
+      (mod 3)))
+
+(defn result-play [p1 p2]
+  (-> (- (play2n p2) (play2n p1))
+      inc
+      (mod 3)))
+
+(defn score-play [p1 p2]
+  (+ (inc (play2n p2))
+     (* 3
+        (result-play p1 p2))))
+
+(defn score-strategy [st]
+  (->> st
+       (map-apply score-play)
+       (reduce +)))
+
+(defn parse-play [s]
+  (st/split s #" "))
 
 (defn parse-play-win-lose [s]
   (let [[p r] (parse-play s)]
-    [p (-> r, play2n, dec, (+ (play2n p)), (mod 3), plays)]))
+    [p
+     (-> r
+         play2n
+         dec
+         (+ (play2n p))
+         (mod 3)
+         plays)]))
 
-(defn d2p1 [] (-> (read-input-day "d2" parse-play), score-strategy))
-(defn d2p2 [] (-> (read-input-day "d2" parse-play-win-lose), score-strategy))
+(defn d2p1 []
+  (-> (read-input-day "d2" parse-play)
+      score-strategy))
+
+(defn d2p2 []
+  (-> (read-input-day "d2" parse-play-win-lose)
+      score-strategy))
 
 (deftest d02
   (is (= 8 (score-play "A" "B")))
-  (is (= 1 (score-strategy [["B", "A"]])))
+  (is (= 1 (score-strategy [["B" "A"]])))
   (is (= 15 (score-strategy [["A" "Y"] ["B" "X"] ["C" "Z"]])))
   (is (= 11767 (d2p1)))
   (is (= 13886 (d2p2))))
 
 ;; Day 3
-(defn priority [it] (if (> (int it) 91) (- (int it) 96) (- (int it) 38))) ;; ascii codes
-(defn take-drop-half [tk? xs] (let [n (/ (count xs) 2)] (if tk? (take n xs) (drop n xs))))
-(defn half-n [n xs] (-> (= 0 (mod n 2)), (take-drop-half xs), set))
-(defn item-both-comp [rsack] (first (set/intersection (half-n 0 rsack) (half-n 1 rsack))))
-(defn sum-priorities [rsacks] (->> rsacks, (map item-both-comp), (map priority), sum))
-(defn common-item [rsacks] (->> rsacks, (map set), (apply set/intersection), first))
-(defn sum-badges [groups] (->> groups, (map common-item), (map priority), sum))
+(defn priority [it]
+  (if (> (int it) 91)
+    (- (int it) 96)
+    (- (int it) 38))) ;; ascii codes
 
-(defn d3p1 [] (->> (read-input-day "d3"), sum-priorities))
-(defn d3p2 [] (->> (read-input-day "d3"), (partition 3), sum-badges))
+(defn take-drop-half [tk? xs]
+  (let [n (/ (count xs) 2)]
+    (if tk?
+      (take n xs)
+      (drop n xs))))
+
+(defn half-n [n xs]
+  (-> (= 0 (mod n 2))
+      (take-drop-half xs)
+      set))
+
+(defn item-both-comp [rsack]
+  (first (set/intersection (half-n 0 rsack) (half-n 1 rsack))))
+
+(defn sum-priorities [rsacks]
+  (->> rsacks
+       (map item-both-comp)
+       (map priority)
+       (reduce +)))
+
+(defn common-item [rsacks]
+  (->> rsacks
+       (map set)
+       (apply set/intersection)
+       first))
+
+(defn sum-badges [groups]
+  (->> groups
+       (map common-item)
+       (map priority)
+       (reduce +)))
+
+(defn d3p1 []
+  (->> (read-input-day "d3")
+       sum-priorities))
+
+(defn d3p2 []
+  (->> (read-input-day "d3")
+       (partition 3)
+       sum-badges))
 
 (deftest d03
   (is (= #{\a \b} (set (half-n 0 "abaZ"))))
