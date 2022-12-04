@@ -192,13 +192,13 @@
   (is (= 2790 (d3p2))))
 
 ;; Day 4
-(defn fully-contained? [s1 s2]
-  (and (>= (first s1) (first s2))
-       (<= (second s1) (second s2))))
+(defn fully-contained? [r1 r2]
+  (and (>= (first r1) (first r2))
+       (<= (second r1) (second r2))))
 
-(defn fully-overlap? [[s1 s2]]
-  (or (fully-contained? s1 s2)
-      (fully-contained? s2 s1)))
+(defn fully-overlap? [[r1 r2]]
+  (or (fully-contained? r1 r2)
+      (fully-contained? r2 r1)))
 
 (defn in-range? [[a b] n]
   (and (<= a n)
@@ -208,9 +208,9 @@
   (or (in-range? r a)
       (in-range? r b)))
 
-(defn overlap? [[s1 s2]]
-  (or (range-in-range? s1 s2)
-      (range-in-range? s2 s1)))
+(defn overlap? [[r1 r2]]
+  (or (range-in-range? r1 r2)
+      (range-in-range? r2 r1)))
 
 (defn parse-d4 [line]
   (->> (st/split line #"[,-]")
