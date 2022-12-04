@@ -103,12 +103,29 @@ It applies 'parse-line-fn' to all lines, if indicated."
 
 ;; Day 2
 (defvar my-plays '("A" "B" "C" "X" "Y" "Z"))
-(defun my-play2n (p) (mod (-elem-index p my-plays) 3))
-(defun my-result-play (p1 p2) (-> (- (my-play2n p2) (my-play2n p1)) (+ 1) (mod 3)))
-(defun my-score-play (p1 p2) (+ (+ 1 (my-play2n p2)) (* 3 (my-result-play p1 p2))))
+
+(defun my-play2n (p)
+  (mod (-elem-index p my-plays) 3))
+
+(defun my-result-play (p1 p2)
+  (-> (- (my-play2n p2)
+         (my-play2n p1))
+      (+ 1)
+      (mod 3)))
+
+(defun my-score-play (p1 p2)
+  (+ (+ 1 (my-play2n p2))
+     (* 3 (my-result-play p1 p2))))
+
 (defun my-score-strategy (st)
-  (->> st (-map (-lambda ((p r)) (my-score-play p r))) (-reduce #'+)))
-(defun my-parse-play (s) (if (s-equals? "" (s-trim s)) nil (s-split " " s)))
+  (->> st
+       (-map (-lambda ((p r)) (my-score-play p r)))
+       (-reduce #'+)))
+
+(defun my-parse-play (s)
+  (if (s-equals? "" (s-trim s))
+      nil
+    (s-split " " s)))
 
 (defun my-parse-play-win-lose (s)
   (-let (((p r) (my-parse-play s)))
@@ -116,8 +133,13 @@ It applies 'parse-line-fn' to all lines, if indicated."
         nil
       (list p (-> r my-play2n (- 1) (+ (my-play2n p)) (mod 3) (nth my-plays))))))
 
-(defun my-d2p1 () (-> (my-read-input-day "d2" #'my-parse-play) my-score-strategy))
-(defun my-d2p2 () (-> (my-read-input-day "d2" #'my-parse-play-win-lose) my-score-strategy))
+(defun my-d2p1 ()
+  (-> (my-read-input-day "d2" #'my-parse-play)
+      my-score-strategy))
+
+(defun my-d2p2 ()
+  (-> (my-read-input-day "d2" #'my-parse-play-win-lose)
+      my-score-strategy))
 
 (ert-deftest my-erttest-d2 ()
   "Tests for day 2"
@@ -129,22 +151,54 @@ It applies 'parse-line-fn' to all lines, if indicated."
   (should (equal 13886 (my-d2p2))))
 
 ;; Day 3
-(defun my-priority (it) (if (> it 91) (- it 96) (- it 38))) ;; ascii codes of chars
-(defun my-string-to-chars (s) (-map #'identity s))
+(defun my-priority (it)
+  (if (> it 91)
+      (- it 96)
+    (- it 38))) ;; ascii codes of chars
+
+(defun my-string-to-chars (s)
+  (-map #'identity s))
 
 (defun my-take-or-drop-half (t-d s)
   (-let ((s (my-string-to-chars s))
          (n (/ (length s) 2)))
-    (if t-d (-take n s) (-drop n s))))
+    (if t-d
+        (-take n s)
+      (-drop n s))))
 
-(defun my-half-n (n s) (-> (= 0 (mod n 2)) (my-take-or-drop-half s)))
-(defun my-item-both-comp (rucksack) (car (cl-intersection (my-half-n 0 rucksack) (my-half-n 1 rucksack))))
-(defun my-sum-priorities (rucksacks) (->> rucksacks (-map #'my-item-both-comp) (-map #'my-priority) (-reduce #'+)))
-(defun my-common-item (rucksacks) (->> rucksacks (-map #'my-string-to-chars) (apply #'cl-intersection) car))
-(defun my-sum-badges (groups) (->> groups (-map #'my-common-item) (-map #'my-priority) (-reduce #'+)))
+(defun my-half-n (n s)
+  (-> (= 0 (mod n 2))
+      (my-take-or-drop-half s)))
 
-(defun my-d3p1 () (->> (my-read-input-day "d3" #'identity) my-sum-priorities))
-(defun my-d3p2 () (->> (my-read-input-day "d3" #'identity) (-partition 3) my-sum-badges))
+(defun my-item-both-comp (rucksack)
+  (car (cl-intersection (my-half-n 0 rucksack) (my-half-n 1 rucksack))))
+
+(defun my-sum-priorities (rucksacks)
+  (->> rucksacks
+       (-map #'my-item-both-comp)
+       (-map #'my-priority)
+       (-reduce #'+)))
+
+(defun my-common-item (rucksacks)
+  (->> rucksacks
+       (-map #'my-string-to-chars)
+       (apply #'cl-intersection)
+       car))
+
+(defun my-sum-badges (groups)
+  (->> groups
+       (-map #'my-common-item)
+       (-map #'my-priority)
+       (-reduce #'+)))
+
+(defun my-d3p1 ()
+  (->> (my-read-input-day "d3" #'identity)
+       my-sum-priorities))
+
+(defun my-d3p2 ()
+  (->> (my-read-input-day "d3" #'identity)
+       (-partition 3)
+       my-sum-badges))
 
 ;; (ert-deftest d03 ()
 ;;   "Tests for day 3"
