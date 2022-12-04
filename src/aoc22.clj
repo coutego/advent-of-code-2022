@@ -213,8 +213,6 @@
   (or (range-in-range? s1 s2)
       (range-in-range? s2 s1)))
 
-(overlap? [[5 9] [2 4]])
-
 (defn parse-d4 [line]
   (->> (st/split line #"[,-]")
        (map parse-int)
