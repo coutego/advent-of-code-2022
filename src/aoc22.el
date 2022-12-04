@@ -264,12 +264,14 @@ It applies 'parse-line-fn' to all lines, if indicated."
     "Test d04"
   (should (my-fully-contained? '(3 7) '(2 8)))
   (should (my-fully-overlap? '((2 8) (3 7)) ))
-  ;; (should (equal 2
-  ;;                (->> (my-read-input-day "d4-test" #'my-parse-d4)
-  ;;                     (-filter fully-overlap?)
-  ;;                     #'seq-length)))
+  (should (equal 2
+                 (->> (my-read-input-day "d4-test" #'my-parse-d4)
+                      (-filter #'my-fully-overlap?)
+                      seq-length)))
   (should (equal 644 (d4p1)))
-  ;; (should (equal 4 (->> (read-input-day "d4-test" parse-d4) (filter overlap?) #'seq-length)))
+  (should (equal 4 (->> (my-read-input-day "d4-test" #'my-parse-d4)
+                        (-filter #'my-overlap?)
+                        seq-length)))
   (should (equal 926 (d4p2))))
 
 (provide 'aoc22)
