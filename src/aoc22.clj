@@ -236,63 +236,20 @@
   (is (= 926 (d4p2))))
 
 ;; Day 5
-(defn read-move [line]
-  (->> (re-seq #"move (\d+) from (\d+) to (\d+)" line)
-       (first)
-       (drop 1)
-       (map parse-int)))
-
-(defn read-moves [lines]
-  (->> lines
-       (map read-move)))
-
-(defn stack-char-reducer [[stacks idx] nchar]
-  (if (= nchar \space)
-    [stacks (inc idx)]
-    [(update-in stacks
-                [idx]
-                (fn [stack] (conj stack nchar)))
-     (inc idx)]))
-
-(defn stack-line-reducer [stacks nline]
-  (first
-   (reduce stack-char-reducer [stacks 0] nline)))
-
-(defn read-stacks [lines n]
-  (->> lines
-       (reduce stack-line-reducer (vec (for [i (range n)] [])))
-       (map reverse)
-       (mapv vec)))
-
-(defn read-d5 [& [f]]
-  (let [lines (read-input-day (or f "d5"))
-        [rows cols] (->> lines
-                         first
-                         (re-seq #"(\d+) (\d+)")
-                         first
-                         (drop 1)
-                         (map parse-int))
-        lines (rest lines)
-        stacks (read-stacks (take rows lines) cols)
-        moves (read-moves (drop rows lines))]
-    {:stacks stacks
-     :moves moves}))
-
 (defn move-element [stacks from to]
-  (let [from (dec from)
-        to (dec to)
+  (let [stacks (mapv vec stacks)
         el (last (get-in stacks [from]))]
     (-> stacks
         (update-in [from] pop)
         (update-in [to] #(conj % el)))))
 
-(defn procces-move [stacks [n from to]]
+(defn process-move [stacks [n from to]]
   (if (= n 0)
     stacks
-    (recur (move-element stacks from to) [(dec n) from to])))
+    (recur (move-element stacks (dec from) (dec to)) [(dec n) from to])))
 
-(defn process-moves [{:keys [stacks moves]}]
-  (reduce procces-move stacks moves))
+(defn process-moves [stacks moves]
+  (reduce process-move stacks moves))
 
 (defn crates-on-top [stacks]
   (reduce (fn [acc n] (str acc (last n))) "" stacks))
@@ -302,26 +259,64 @@
     stacks
     (let [from (dec from)
           to (dec to)
+          stacks (mapv vec stacks)
           els (get stacks from)
           els (subvec els (- (count els) n))]
       (-> stacks
           (update-in [from] #(vec (drop-last n %)))
           (update-in [to] #(vec (concat % els)))))))
 
-(defn process-moves-in-bulk [{:keys [stacks moves]}]
+(defn process-moves-in-bulk [stacks moves]
   (reduce process-move-in-bulk stacks moves))
 
-(defn d5p1
-  ([& [filename]]
-   (->> (read-d5 (or filename "d5"))
-        process-moves
-        crates-on-top)))
+(defn transpose
+  "Transpose a 'matrix' `mat`.
+  `mat'`is any sequence of sequences representing the matrix rows, with the
+  particularity that they don't need to extend to the number of columns.
+  Any missing element at the end is interpreted a being nil."
+  [mat]
+  (->> mat
+       (map (fn [row] (concat row (repeat nil)))) ;; pad with (infinite) nils
+       (apply map vector)                         ;; transpose (map with n colls)
+       (take-while #(some identity %))))          ;; finish when all elements are nil
 
-(defn d5p2
-  ([& [filename]]
-   (->> (read-d5 (or filename "d5"))
-        process-moves-in-bulk
-        crates-on-top)))
+(defn read-move [line]
+  (->> (re-seq #"move (\d+) from (\d+) to (\d+)" line)
+       first
+       (drop 1)
+       (map parse-int)))
+
+(defn read-moves [lines]
+  (->> lines
+       (map read-move)))
+
+(defn take-stack-cols
+  "Select just the elements on the stacks, discarding brackets and whitespace"
+  [s]
+  (->> (for [i (range)] (get s (+ 1 (* 4 i))))
+       (take-while identity)))
+
+(defn read-stacks-moves [raw-stacks _ raw-moves]
+  [(->> raw-stacks
+        (map take-stack-cols)
+        transpose
+        (map reverse)
+        (map #(take-while (fn [c] (and c (not= c \space))) %)))
+   (read-moves raw-moves)])
+
+(defn d5 [f & [filename]]
+  (let [[stacks moves]
+        (->> (read-input-day (or filename "d5"))
+             (partition-by #(= "" %))
+             (apply read-stacks-moves))]
+    (->> (f stacks moves)
+         crates-on-top)))
+
+(defn d5p1 [& [filename]]
+  (d5 process-moves filename))
+
+(defn d5p2 [& [filename]]
+  (d5 process-moves-in-bulk filename))
 
 (deftest d05
   (is (= "CMZ" (->> (d5p1 "d5-test"))))
