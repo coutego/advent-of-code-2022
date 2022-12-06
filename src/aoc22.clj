@@ -334,7 +334,6 @@
        (filter different-els?)
        (map #(apply str %))
        first
-       ((fn [s] (println s) s))
        ((fn [ss] (+ n (st/index-of s ss))))))
 
 (defn d6p1 []
