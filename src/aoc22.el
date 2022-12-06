@@ -277,6 +277,39 @@ It applies 'parse-line-fn' to all lines, if indicated."
                seq-length)))
   (should (equal 926 (d4p2))))
 
+;; Day 6
+(defun my-in-p (el coll)
+  (named-let recur ((found nil)
+                    (xs coll))
+    (when xs
+      (or found
+          (eq el (car xs))
+          (recur found (cdr xs))))))
+
+(defun my-has-repeated-elements (coll)
+  (named-let recur ((xs coll))
+    (when xs
+      (or (my-in-p (car xs) (cdr xs))
+          (recur (cdr xs))))))
+
+(defun my-start-of-message (n s)
+  (named-let recur ((pos 0)
+                    (acc '())
+                    (rest (string-to-list s)))
+    (when rest
+      (if (length< acc n)
+          (recur (+ pos 1) (append acc (list (car rest))) (cdr rest))
+        (if (not (my-has-repeated-elements acc))
+            pos
+          (recur (+ pos 1) (append (cdr acc) (list (car rest))) (cdr rest)))))))
+
+(ert-deftest d06 ()
+  "Test d06"
+  (should (eq 11 (my-start-of-message 4 "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")))
+  (should (eq 1760 (->> (my-read-input-day "d6") car (my-start-of-message 4))))
+  (should (eq 2974 (->> (my-read-input-day "d6") car (my-start-of-message 14)))))
+
+
 (provide 'aoc22)
 
 ;; Local Variables:
