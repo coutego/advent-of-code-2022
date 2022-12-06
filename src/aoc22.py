@@ -197,5 +197,41 @@ def test_d4():
     assert 926 == d4p2()
 
 
+# Day 6
+def has_repeaded_els(lst: List):
+    ln = len(lst)
+    for i in range(ln - 1):
+        for j in range(ln - i - 1):
+            if lst[i] == lst[i + j + 1]:
+                return True
+    return False
+
+
+def start_of_message(n: int, s: str):
+    acc: List = []
+    pos = 0
+    for c in s:
+        pos += 1
+        acc.append(c)
+        if pos > n:
+            acc = acc[1:]
+            if not has_repeaded_els(acc):
+                return pos
+    return None
+
+
+def d6p1() -> Optional[int]:
+    return start_of_message(4, read_input_day("d6")[0])
+
+
+def d6p2() -> Optional[int]:
+    return start_of_message(14, read_input_day("d6")[0])
+
+
+def test_d6():
+    assert 1760 == d6p1()
+    assert 2974 == d6p2()
+
+
 if __name__ == "__main__":
     main()
