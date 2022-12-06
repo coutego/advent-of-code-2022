@@ -325,8 +325,8 @@
   (is (= "VHJDDCWRD" (d5p2))))
 
 ;; Day 6
-(defn different-els?[cs]
-  (= (count cs) (count (set cs))))
+(defn different-els? [xs]
+  (= (count xs) (count (set xs))))
 
 (defn find-n-different [n s]
   (->> s
