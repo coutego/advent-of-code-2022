@@ -332,8 +332,8 @@
   (->> s
        (partition n 1)
        (filter different-els?)
-       (map #(apply str %))
        first
+       (apply str)
        (st/index-of s)
        (+ n)))
 
