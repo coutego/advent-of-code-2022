@@ -314,8 +314,12 @@ It applies 'parse-line-fn' to all lines, if indicated."
 (ert-deftest d06 ()
   "Test d06"
   (should (eq 11 (my-start-of-message 4 "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")))
-  (should (eq 1760 (->> (my-read-input-day "d6") car (my-start-of-message 4))))
-  (should (eq 2974 (->> (my-read-input-day "d6") car (my-start-of-message 14)))))
+  (should (eq 1760 (->> (my-read-input-day "d6")
+                        car
+                        (my-start-of-message 4))))
+  (should (eq 2974 (->> (my-read-input-day "d6")
+                        car
+                        (my-start-of-message 14)))))
 
 
 (provide 'aoc22)
