@@ -323,3 +323,30 @@
   (is (= "JDTMRWCQJ" (d5p1)))
   (is (= "MCD" (->> (d5p2 "d5-test"))))
   (is (= "VHJDDCWRD" (d5p2))))
+
+;; Day 6
+(defn different-els?[cs]
+  (= (count cs) (count (set cs))))
+
+(defn find-n-different [n s]
+  (->> s
+       (partition n 1)
+       (filter different-els?)
+       (map #(apply str %))
+       first
+       ((fn [s] (println s) s))
+       ((fn [ss] (+ n (st/index-of s ss))))))
+
+(defn d6p1 []
+  (->> (read-input-day "d6")
+       first
+       (find-n-different 4)))
+
+(defn d6p2 []
+  (->> (read-input-day "d6")
+       first
+       (find-n-different 14)))
+
+(deftest d05
+  (is (= 1760 (d6p1)))
+  (is (= 2974 (d6p2))))
