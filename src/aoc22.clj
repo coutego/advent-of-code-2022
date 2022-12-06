@@ -334,7 +334,8 @@
        (filter different-els?)
        (map #(apply str %))
        first
-       ((fn [ss] (+ n (st/index-of s ss))))))
+       (st/index-of s)
+       (+ n)))
 
 (defn d6p1 []
   (->> (read-input-day "d6")
