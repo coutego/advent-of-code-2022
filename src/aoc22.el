@@ -278,6 +278,7 @@ It applies 'parse-line-fn' to all lines, if indicated."
   (should (equal 926 (d4p2))))
 
 ;; Day 6
+;; Macro is not needed, of course, but...
 (defmacro loop (bindings &rest body)
   (declare (indent 1))
   `(named-let recur ,bindings
