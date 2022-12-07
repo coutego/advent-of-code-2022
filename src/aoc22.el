@@ -278,30 +278,37 @@ It applies 'parse-line-fn' to all lines, if indicated."
   (should (equal 926 (d4p2))))
 
 ;; Day 6
-(defun my-in-p (el coll)
-  (named-let recur ((found nil)
-                    (xs coll))
-    (when xs
-      (or found
-          (eq el (car xs))
-          (recur found (cdr xs))))))
+(defmacro loop (bindings &rest body)
+  (declare (indent 1))
+  `(named-let recur ,bindings
+    ,@body))
 
-(defun my-has-repeated-elements (coll)
-  (named-let recur ((xs coll))
-    (when xs
-      (or (my-in-p (car xs) (cdr xs))
-          (recur (cdr xs))))))
+(defun my-in-p (element list)
+  (loop ((list list))
+    (when list
+      (or (eq element (car list))
+          (recur (cdr list))))))
 
-(defun my-start-of-message (n s)
-  (named-let recur ((pos 0)
-                    (acc '())
-                    (rest (string-to-list s)))
+(defun my-has-repeated-elements (list)
+  (loop ((list list))
+    (when list
+      (or (my-in-p (car list) (cdr list))
+          (recur (cdr list))))))
+
+(defun my-start-of-message (n msg)
+  (loop ((pos 0)
+         (acc '())
+         (rest (string-to-list msg)))
     (when rest
       (if (length< acc n)
-          (recur (+ pos 1) (append acc (list (car rest))) (cdr rest))
+          (recur (+ pos 1)
+                 (append acc (list (car rest)))
+                 (cdr rest))
         (if (not (my-has-repeated-elements acc))
             pos
-          (recur (+ pos 1) (append (cdr acc) (list (car rest))) (cdr rest)))))))
+          (recur (+ pos 1)
+                 (append (cdr acc) (list (car rest)))
+                 (cdr rest)))))))
 
 (ert-deftest d06 ()
   "Test d06"
