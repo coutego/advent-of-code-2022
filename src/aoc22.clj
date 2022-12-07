@@ -347,6 +347,6 @@
        first
        (find-n-different 14)))
 
-(deftest d05
+(deftest d06
   (is (= 1760 (d6p1)))
   (is (= 2974 (d6p2))))
