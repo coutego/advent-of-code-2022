@@ -352,7 +352,7 @@
   (is (= 2974 (d6p2))))
 
 ;; Day 7
-;; Input is basically an tree of s-exps of sizes. We don't need the names of the
+;; Input is basically a tree of s-exps of nums. We don't need the names of the
 ;; dirs, so all it remains is something like (14848514 8504156 (29116 2557))
 (defn process-text-line [line]
   (cond
@@ -360,12 +360,11 @@
     (st/starts-with? line "dir") nil
     (st/starts-with? line "$ cd ..") ")"
     (st/starts-with? line "$ cd ") "("
-    :else (let [[size _] (st/split line #" ")] (str size " "))))
+    :else (let [[size _] (st/split line #" ")] size)))
 
 (defn add-last-two [nums]
-  (let [lst (last nums)
-        plst (last (butlast nums))]
-    (conj (pop (pop nums)) (+ lst plst))))
+    (conj (->> nums pop pop) ;o)
+          (->> nums reverse (take 2) (reduce +))))
 
 (defn token-reducer [[stack nums] token]
   (case token
@@ -385,7 +384,7 @@
   (->> input
        (map process-text-line)
        (filter identity)
-       ((fn [tokens] (concat tokens (repeat 10 ")"))))
+       ((fn [tokens] (concat tokens (repeat 20 ")")))) ;-) https://cutt.ly/Z0qbbkP
        process-clean-input
        second))
 
