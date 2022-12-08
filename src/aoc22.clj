@@ -352,8 +352,9 @@
   (is (= 2974 (d6p2))))
 
 ;; Day 7
-;; Input is basically a tree of s-exps of nums. We don't need the names of the
-;; dirs, so all it remains is something like (14848514 8504156 (29116 2557))
+;; Input is basically a tree of s-exps of nums. We don't need
+;; the names of the dirs, so all it remains is something like
+;; (14848514 8504156 (29116 2557))
 (defn process-text-line [line]
   (cond
     (= line "$ ls") nil
