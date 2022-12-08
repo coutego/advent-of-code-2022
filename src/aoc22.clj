@@ -17,7 +17,7 @@
         ret   (if parse-line-fn (map parse-line-fn ret) ret)]
     ret))
 
-(defn parse-int [s] (Integer/valueOf s))
+(defn parse-int [s] (Integer/valueOf (st/trim s)))
 
 (defn parse-opt-int [s]
   (if (or (nil? s) (= (st/trim s) ""))
@@ -352,44 +352,42 @@
   (is (= 2974 (d6p2))))
 
 ;; Day 7
-;; Input is basically a Lisp program, if "cd xxx" is interpreted as "(" and "cd .."
-;; as ")" so we can use clojure's eval to interpret the transformed input file
-;; We'll transfor the input file in the program
-;;   (in-dir "/" (in-dir "a" 14848514 8504156 (in-dir "d")))...
-;; So the only thing left to do at that point is to write the in-dir function
+;; Input is basically an tree of s-exps of sizes. We don't need the names of the
+;; dirs, so all it remains is something like (14848514 8504156 (29116 2557))
 (defn process-text-line [line]
   (cond
     (= line "$ ls") nil
     (st/starts-with? line "dir") nil
     (st/starts-with? line "$ cd ..") ")"
-    (st/starts-with? line "$ cd ") (str "(in-dir \"" (subs line 5) "\" ")
+    (st/starts-with? line "$ cd ") "("
     :else (let [[size _] (st/split line #" ")] (str size " "))))
 
-(defn in-dir-reducer [acc size-container]
-  (if (number? size-container)
-    (update acc :size #(+ % size-container))
-    (let [new-size (+ (:size acc) (:size size-container))
-          name (:name acc)]
-      (-> acc
-          (assoc :size new-size)
-          (update :dirs assoc (:name acc) new-size)
-          (update :dirs merge (->> (:dirs size-container)
-                                   (map (fn [[k v]] [(str name "/" k) v]))
-                                   (into {})))))))
+(defn add-last-two [nums]
+  (let [lst (last nums)
+        plst (last (butlast nums))]
+    (conj (pop (pop nums)) (+ lst plst))))
 
-(defn in-dir [name & sizes]
-  (reduce in-dir-reducer {:name name :dirs {} :size 0} sizes))
+(defn token-reducer [[stack nums] token]
+  (case token
+    "(" [(conj stack 0) nums]
+    ")" (if (= 1 (count stack))
+          (reduced [[] (conj nums (first stack))])
+          (let [lst (last stack)]
+            [(add-last-two stack)
+             (conj nums lst)]))
+    [(conj (pop stack) (+ (parse-int token) (last stack)))
+     nums]))
 
-(defn eval-instructions [input]
+(defn process-clean-input [tokens]
+  (reduce token-reducer [[][]] tokens))
+
+(defn process-raw-input [input]
   (->> input
        (map process-text-line)
        (filter identity)
-       (apply str)
-       ((fn [s] (str s ")))))))))))))))"))) ;-)
-       read-string
-       eval
-       :dirs
-       vals))
+       ((fn [tokens] (concat tokens (repeat 10 ")"))))
+       process-clean-input
+       second))
 
 (defn find-size-min-dir [minimum sizes]
   (let [target (- (apply max sizes) minimum)]
@@ -399,7 +397,7 @@
 
 (defn d7-read-sizes [& [filename]]
   (->> (read-input-day (or filename "d7"))
-       eval-instructions))
+       process-raw-input))
 
 (defn d7p1 [& [filename]]
   (->> (d7-read-sizes filename)
@@ -410,10 +408,8 @@
   (->> (d7-read-sizes filename)
        (find-size-min-dir 40000000)))
 
-(def d7p1-result (d7p1))
-
 (deftest d07
   (is (= 95437 (d7p1 "d7-test")))
-  (is (= 1086293 d7p1-result))
-  #_(is (= 24933642 (d7p2 "d7-test")))
-  #_(is (= 1 (d7p2))))
+  (is (= 1086293 (d7p1)))
+  (is (= 24933642 (d7p2 "d7-test")))
+  (is (= 366028 (d7p2))))
