@@ -432,10 +432,6 @@
         new-tail (update-tail-position new-head tail)]
     {:head new-head :tail new-tail :tails (conj tails new-tail)}))
 
-(defn parse-d9 [s]
-  (let [[move times] (st/split s #" ")]
-    (repeat (parse-int times) (moves-d9 move))))
-
 (defn update-chain [acc n]
   (conj acc (update-tail-position (last acc) n)))
 
@@ -444,6 +440,10 @@
         new-head [(+ hx mx) (+ hy my)]
         new-knots (reduce update-chain [new-head] (rest knots))]
     {:knots new-knots :tails (conj tails (last new-knots))}))
+
+(defn parse-d9 [s]
+  (let [[move times] (st/split s #" ")]
+    (repeat (parse-int times) (moves-d9 move))))
 
 (defn d9p1 [& [filename]]
   (->> (read-input-day (or filename "d9") parse-d9)
