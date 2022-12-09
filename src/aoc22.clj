@@ -424,17 +424,17 @@
                             :else (/ d (abs d))))]
     [(+ otx (incfn dx)) (+ oty (incfn dy))]))
 
-(def moves-d8 {"L" [-1 0] "R" [1 0] "U" [0 1] "D" [0 -1]})
+(def moves-d9 {"L" [-1 0] "R" [1 0] "U" [0 1] "D" [0 -1]})
 
-(defn apply-move-d8 [{:keys [head tail tails]} [mx my :as move]]
+(defn apply-move-d9 [{:keys [head tail tails]} [mx my :as move]]
   (let [[hx hy] head
         new-head [(+ mx hx) (+ my hy)]
         new-tail (update-tail-position new-head tail)]
     {:head new-head :tail new-tail :tails (conj tails new-tail)}))
 
-(defn parse-d8 [s]
+(defn parse-d9 [s]
   (let [[move times] (st/split s #" ")]
-    (repeat (parse-int times) (moves-d8 move))))
+    (repeat (parse-int times) (moves-d9 move))))
 
 (defn update-chain [acc n]
   (conj acc (update-tail-position (last acc) n)))
@@ -445,15 +445,15 @@
         new-knots (reduce update-chain [new-head] (rest knots))]
     {:knots new-knots :tails (conj tails (last new-knots))}))
 
-(defn d8p1 [& [filename]]
-  (->> (read-input-day (or filename "d8") parse-d8)
+(defn d9p1 [& [filename]]
+  (->> (read-input-day (or filename "d9") parse-d9)
        (apply concat)
-       (reduce apply-move-d8 {:head [0 0] :tail [0 0] :tails #{}})
+       (reduce apply-move-d9 {:head [0 0] :tail [0 0] :tails #{}})
        :tails
        count))
 
-(defn d8p2 [& [filename]]
-  (->> (read-input-day (or filename "d8") parse-d8)
+(defn d9p2 [& [filename]]
+  (->> (read-input-day (or filename "d9") parse-d9)
        (apply concat)
        (reduce update-knots {:knots (repeat 10 [0 0]) :tails #{}})
        :tails
@@ -463,7 +463,7 @@
   (is (= [0 0] (update-tail-position [1 1] [0 0])))
   (is (= [1 1] (update-tail-position [2 1] [0 0])))
   (is (= [-1 -1] (update-tail-position [-2 -1] [0 0])))
-  (is (= (d8p1 "d8-test1") 13))
-  (is (= (d8p1) 6181))
-  (is (= (d8p2 "d8-test2") 36))
-  (is (= (d8p2) 2386)))
+  (is (= (d9p1 "d9-test1") 13))
+  (is (= (d9p1) 6181))
+  (is (= (d9p2 "d9-test2") 36))
+  (is (= (d9p2) 2386)))
