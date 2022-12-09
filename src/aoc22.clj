@@ -415,7 +415,7 @@
   (is (= 366028 (d7p2))))
 
 ;; Day 9
-(defn update-tail-position [[nhx, nhy :as new-head-position]
+(defn update-tail-position [[nhx nhy :as new-head-position]
                             [otx oty :as old-tail-position]]
   (let [dx (- nhx otx)
         dy (- nhy oty)
