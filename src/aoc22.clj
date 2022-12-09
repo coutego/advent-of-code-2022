@@ -413,3 +413,57 @@
   (is (= 1086293 (d7p1)))
   (is (= 24933642 (d7p2 "d7-test")))
   (is (= 366028 (d7p2))))
+
+;; Day 9
+(defn update-tail-position [[nhx, nhy :as new-head-position]
+                            [otx oty :as old-tail-position]]
+  (let [dx (- nhx otx)
+        dy (- nhy oty)
+        touching? (and (< (abs dx) 2) (< (abs dy) 2))
+        incfn (fn [d] (cond (or (= d 0) touching?) 0
+                            :else (/ d (abs d))))]
+    [(+ otx (incfn dx)) (+ oty (incfn dy))]))
+
+(def moves-d8 {"L" [-1 0] "R" [1 0] "U" [0 1] "D" [0 -1]})
+
+(defn apply-move-d8 [{:keys [head tail tails]} [mx my :as move]]
+  (let [[hx hy] head
+        new-head [(+ mx hx) (+ my hy)]
+        new-tail (update-tail-position new-head tail)]
+    {:head new-head :tail new-tail :tails (conj tails new-tail)}))
+
+(defn parse-d8 [s]
+  (let [[move times] (st/split s #" ")]
+    (repeat (parse-int times) (moves-d8 move))))
+
+(defn update-chain [acc n]
+  (conj acc (update-tail-position (last acc) n)))
+
+(defn update-knots [{:keys [knots tails]} [mx my :as move]]
+  (let [[hx hy] (first knots)
+        new-head [(+ hx mx) (+ hy my)]
+        new-knots (reduce update-chain [new-head] (rest knots))]
+    {:knots new-knots :tails (conj tails (last new-knots))}))
+
+(defn d8p1 [& [filename]]
+  (->> (read-input-day (or filename "d8") parse-d8)
+       (apply concat)
+       (reduce apply-move-d8 {:head [0 0] :tail [0 0] :tails #{}})
+       :tails
+       count))
+
+(defn d8p2 [& [filename]]
+  (->> (read-input-day (or filename "d8") parse-d8)
+       (apply concat)
+       (reduce update-knots {:knots (repeat 10 [0 0]) :tails #{}})
+       :tails
+       count))
+
+(deftest d09
+  (is (= [0 0] (update-tail-position [1 1] [0 0])))
+  (is (= [1 1] (update-tail-position [2 1] [0 0])))
+  (is (= [-1 -1] (update-tail-position [-2 -1] [0 0])))
+  (is (= (d8p1 "d8-test1") 13))
+  (is (= (d8p1) 6181))
+  (is (= (d8p2 "d8-test2") 36))
+  (is (= (d8p2) 2386)))
