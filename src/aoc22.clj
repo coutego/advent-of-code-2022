@@ -539,8 +539,8 @@
     (cond
       (= op "noop") (conj state [[x x x] (inc cycle) "noop"])
       (= op "addx") (-> state
-                        (conj [[x x x] (inc cycle) "1 addx" arg])
-                        (conj [[x x (+ x arg)] (+ 2 cycle) "2 addx" arg])))))
+                        (conj [[x x x] (inc cycle)])
+                        (conj [[x x (+ x arg)] (+ 2 cycle)])))))
 
 (defn sum-idxs [sts]
   (let [f (fn [sts id] (* id (->> id (nth sts) first second)))]
