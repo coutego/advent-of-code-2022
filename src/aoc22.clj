@@ -414,6 +414,72 @@
   (is (= 24933642 (d7p2 "d7-test")))
   (is (= 366028 (d7p2))))
 
+;; Day 8
+(defn visible-trees-row-front [row]
+  (loop [[[_ _ val :as front] & rest] row
+         max -1
+         visible #{}]
+    (if (nil? front)
+      visible
+      (if (< max val)
+        (recur rest val (conj visible front) )
+        (recur rest max visible)))))
+
+(defn visible-trees-row [row]
+  (set/union (visible-trees-row-front row)
+             (visible-trees-row-front (reverse row))))
+
+(defn visible-trees-rows [rows]
+  (->> rows
+       (map visible-trees-row)
+       (apply set/union)))
+
+(defn visible-trees [rows]
+  (set/union (visible-trees-rows rows)
+             (visible-trees-rows (apply map vector rows))))
+
+(defn in-visible-distance [height row]
+  (if (->> row (some #(>= (nth % 2) height)))
+    (->> row
+         (take-while #(< (nth % 2) height))
+         count
+         inc)
+    (count row)))
+
+(defn tree-score [rows [x y :as tree]]
+  (let [height (-> rows (nth x) (nth y) (nth 2))
+        left (->> (nth rows y) (take x) reverse (in-visible-distance height))
+        right (->> (nth rows y) (drop (inc x)) (in-visible-distance height))
+        up (->> rows (map #(nth % x)) (take y) reverse (in-visible-distance height))
+        down (->> rows (map #(nth % x)) (drop (inc y)) (in-visible-distance height))]
+    (* left right up down)))
+
+(defn max-tree-score [rows]
+  (apply max
+         (for [i (range (- (count rows)  2))
+               j (range (- (count (first rows)) 2))]
+           (tree-score rows [(inc i) (inc j)]))))
+
+(defn parse-d8 [rownum row]
+  (vec (map-indexed (fn [idx it] [rownum idx (- (int it) (int \0))]) row)))
+
+(defn d8p1 [& [filename]]
+  (->> (read-input-day (or filename "d8"))
+       (map-indexed parse-d8)
+       visible-trees
+       count))
+
+(defn d8p2 [& [filename]]
+  (->> (read-input-day (or filename "d8"))
+       (map-indexed parse-d8)
+       max-tree-score))
+
+(deftest d08
+  (is (= 21 (d8p1 "d8-test")))
+  (is (= 1533 (d8p1 "d8")))
+  (is (= 8 (d8p2 "d8-test")))
+  (is (= 1 (d8p2 "d8"))))
+
 ;; Day 9
 (defn update-tail-position [[nhx nhy :as new-head-position]
                             [otx oty :as old-tail-position]]
@@ -451,7 +517,6 @@
        (reduce apply-move-d9 {:head [0 0] :tail [0 0] :tails #{}})
        :tails
        count))
-
 (defn d9p2 [& [filename]]
   (->> (read-input-day (or filename "d9") parse-d9)
        (apply concat)
@@ -467,3 +532,34 @@
   (is (= (d9p1) 6181))
   (is (= (d9p2 "d9-test2") 36))
   (is (= (d9p2) 2386)))
+
+;; Day 10
+(defn exec [state [op arg]]
+  (let [[[_ _ x] cycle] (or (last state) [[1 1 1] 0])]
+    (cond
+      (= op "noop") (conj state [[x x x] (inc cycle) "noop"])
+      (= op "addx") (-> state
+                        (conj [[x x x] (inc cycle) "1 addx" arg])
+                        (conj [[x x (+ x arg)] (+ 2 cycle) "2 addx" arg])))))
+
+(defn sum-idxs [sts]
+  (let [f (fn [sts id] (* id (->> id (nth sts) first second)))]
+    (+ (f sts 20)
+       (f sts 60)
+       (f sts 100)
+       (f sts 140)
+       (f sts 180)
+       (f sts 220))))
+
+(defn parse-d10 [s]
+  (let [[op arg] (st/split s #" ")]
+    [op (and arg (parse-int arg))]))
+
+(defn d10p1 [& [filename]]
+  (->> (read-input-day (or filename "d10") parse-d10)
+       (reduce exec [[[1 1 1] 0]])
+       sum-idxs))
+
+(deftest d10
+  (is (= (d10p1 "d10-test") 13140))
+  (is (= (d10p1) 17380)))
