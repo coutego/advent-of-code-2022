@@ -551,6 +551,11 @@
        (f sts 180)
        (f sts 220))))
 
+(defn sprite-in-draw-position? [idx cycle]
+  (let [col (mod idx 40)
+        pos (-> cycle first second)]
+    (< (abs (- pos col)) 2)))
+
 (defn parse-d10 [s]
   (let [[op arg] (st/split s #" ")]
     [op (and arg (parse-int arg))]))
@@ -560,6 +565,18 @@
        (reduce exec [[[1 1 1] 0]])
        sum-idxs))
 
+(defn d10p2 [& [filename]]
+  (->> (read-input-day (or filename "d10") parse-d10)
+       (reduce exec [[[1 1 1] 0]])
+       (drop 1)
+       (map-indexed sprite-in-draw-position?)
+       (map (fn [b] (if b "#" " ")))
+       (partition 40)
+       (map (fn [ss] (apply str ss)))))
+
 (deftest d10
   (is (= (d10p1 "d10-test") 13140))
-  (is (= (d10p1) 17380)))
+  (is (= (d10p1) 17380))
+  (is (= (-> (d10p2) first (nth 5)) \space))
+  (is (= (-> (d10p2) second (nth 2)) \space))
+  (is (= (-> (d10p2) second (nth 5)) \#)))
