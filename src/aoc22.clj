@@ -365,7 +365,7 @@
 
 (defn add-last-two [nums]
     (conj (->> nums pop pop) ;o)
-          (->> nums reverse (take 2) (reduce +))))
+          (->> nums (take-last 2) (reduce +))))
 
 (defn token-reducer [[stack nums] token]
   (case token
