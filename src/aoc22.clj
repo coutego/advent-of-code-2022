@@ -438,20 +438,29 @@
   (set/union (visible-trees-rows rows)
              (visible-trees-rows (apply map vector rows))))
 
+(defn take-while-and
+  "Like take-while, but it can also take the first element that doesn't meet the
+  first predicate if it meets the second predicate"
+  [pred pred2 col]
+  (reduce (fn [acc n] (if (pred n)
+                        (conj acc n)
+                        (reduced (if (pred2 n)
+                                   (conj acc n)
+                                   acc))))
+          []
+          col))
+
 (defn in-visible-distance [height row]
-  (if (->> row (some #(>= (nth % 2) height)))
-    (->> row
-         (take-while #(< (nth % 2) height))
-         count
-         inc)
-    (count row)))
+  (->> row
+       (take-while-and #(<= (nth % 2) height) #(= (nth % 2) height))
+       count))
 
 (defn tree-score [rows [x y :as tree]]
   (let [height (-> rows (nth x) (nth y) (nth 2))
         left (->> (nth rows y) (take x) reverse (in-visible-distance height))
-        right (->> (nth rows y) (drop (inc x)) (in-visible-distance height))
+        right (->> (nth rows y) (drop x) (in-visible-distance height))
         up (->> rows (map #(nth % x)) (take y) reverse (in-visible-distance height))
-        down (->> rows (map #(nth % x)) (drop (inc y)) (in-visible-distance height))]
+        down (->> rows (map #(nth % x)) (drop y) (in-visible-distance height))]
     (* left right up down)))
 
 (defn max-tree-score [rows]
@@ -479,6 +488,11 @@
   (is (= 1533 (d8p1 "d8")))
   (is (= 8 (d8p2 "d8-test")))
   (is (= 1 (d8p2 "d8"))))
+
+(def foo
+  (->> (read-input-day "d8-test")
+       (map-indexed parse-d8)))
+(tree-score foo [3 4])
 
 ;; Day 9
 (defn update-tail-position [[nhx nhy :as new-head-position]
@@ -580,3 +594,167 @@
   (is (= (-> (d10p2) first (nth 5)) \space))
   (is (= (-> (d10p2) second (nth 2)) \space))
   (is (= (-> (d10p2) second (nth 5)) \#)))
+
+
+;; Day 11
+(defn str-split-words [s] (#(st/split s #"[ ]+")))
+
+(defn parse-section-monkey [ndrop sec]
+  (->> sec
+       str-split-words
+       (drop ndrop)))
+
+(defn parse-monkey [[_ items operation test if-true if-false]]
+  {:items     (->> items
+                   (parse-section-monkey 3)
+                   (map #(st/replace % #"," ""))
+                   (map parse-int)
+                   (map bigint)
+                   vec)
+   :operation (->> operation
+                   (parse-section-monkey 5)
+                   ((fn [[op arg]] [(if (= "+" op) + *)
+                                    (if (= arg "old") nil (parse-int arg))])))
+   :test      (->> test
+                   (parse-section-monkey 4)
+                   first
+                   parse-int)
+   :if-true   (->> if-true
+                   (parse-section-monkey 6)
+                   first
+                   parse-int)
+   :if-false  (->> if-false
+                   (parse-section-monkey 6)
+                   first
+                   parse-int)
+   :inspections    (bigint 0)})
+
+(defn monkey-iteration [div-by-3? monkeys idx]
+  (let [curr        (-> monkeys (get idx))
+        item        (-> curr :items first)
+        [op arg]    (-> :operation curr)
+        op-result   (op item (or arg item))
+        div         (if div-by-3? (quot op-result 3)
+                        (rem op-result (->> monkeys (map :test) (reduce *))))
+        ;div         (rem div (->> monkeys (map :test) (reduce *)))
+        test-result (= 0 (mod div (:test curr)))
+        new-mk-idx  (if test-result (:if-true curr) (:if-false curr))]
+    (-> monkeys
+        (update-in [idx :items] #(subvec % 1))
+        (update-in [new-mk-idx :items] #(conj % div)))))
+
+(defn monkey-turn [div-3? monkeys idx]
+  (let [items (-> monkeys (get idx) :items)]
+    (->> items
+         (reduce (fn [acc _] (monkey-iteration div-3? acc idx)) monkeys)
+         (#(update-in % [idx :inspections] (fn [n] (+ n (count items))))))))
+
+(defn monkey-round [div-3? monkeys]
+  (let [ret (reduce-kv (fn [acc idx m] (monkey-turn div-3? acc idx)) monkeys monkeys)]
+    ;(println (->> ret (map :items) (map count) (reduce +)))
+    ret))
+
+(defn d11-common [div-3? niter & [filename]]
+  (let [monkeys (->> (read-input-day (or filename "d11"))
+                     (partition-by #(= % ""))
+                     (filter #(not= % '("")))
+                     (map parse-monkey)
+                     vec)]
+    (->> (reduce (fn [acc n] (monkey-round div-3? acc)) monkeys (range niter))
+         (map :inspections)
+         sort
+         (take-last 2)
+         (apply *))))
+
+(defn d11p1 [& [filename]]
+  (d11-common true 20 filename))
+
+(defn d11p2 [& [filename]]
+  (d11-common true 10000 filename))
+
+(deftest d11
+  (is (= 10605 (d11p1 "d11-test")))
+  (is (= 58786 (d11p1)))
+  (is (= 2713310158 (d11p2 "d11-test")))
+  #_(is (= 1 (d11p2))))
+
+;; Day 12
+
+(defn d12-read-input [& [filename]]
+  (->> (read-input-day (or filename "d12"))
+       (map vec)
+       vec))
+
+(defn map-indexedv [f coll]
+  (vec (map-indexed f coll)))
+
+(defn vaget [varr x y]
+  (when (and (< -1 x (count varr))
+             (< -1 y (count (first varr))))
+    (-> varr (nth x) (nth y))))
+
+(defn afind-all [varr val]
+  (->> varr
+       (map-indexedv (fn [i row] (map-indexedv (fn [j val] [[i j] val]) row)))
+       (apply concat)
+       (filter (fn [[_ v]] (= v val)))))
+
+(defn afind [varr val]
+  (->> (afind-all varr val) first first))
+
+(defn filter-children [varr [_ val _] [[i j] cval steps :as candidate]]
+  (and cval ; cval is not nil
+       val
+       (not steps) ; candidate is not visited
+       (<= (- (int cval) (int val)) 1)))
+
+(defn children-nodes [varr [i j]]
+  (->> [[(dec i) j] [(inc i) j] [i (dec j)] [i (inc j)]]
+       (filter (fn [[x y]] (filter-children varr (vaget varr i j) (vaget varr x y))))))
+
+(defn dijkstra-distance [varr [sx sy :as start] [ex ey :as end] children-fn]
+  (let [varr (map-indexedv (fn [i row]
+                             (map-indexedv (fn [j val] [[i j] val nil])
+                                           row))
+                           varr)]
+    (loop [steps 1
+           to-check [start]
+           varr varr]
+      (let [children (->> to-check
+                          (mapcat (partial children-fn varr))
+                          set
+                          vec)]
+        (cond
+          (= 0 (count children)) nil
+          (in? children end) steps
+          :else (recur (inc steps)
+                       children
+                       (reduce (fn [varr [i j :as n]] (update-in varr n (fn [[coord val _]] [coord val steps])))
+                               varr
+                               children)))))))
+
+
+(defn d12p1 [& [filename]]
+  (let [input (d12-read-input (or filename "d12"))
+        start (afind input \S)
+        end (afind input \E)
+        input (->> input (map (fn [row] (map (fn [c] (case c \S \a \E \z c)) row))))]
+    (dijkstra-distance input start end children-nodes)))
+
+(defn d12p2 [& [filename]]
+  (let [input (d12-read-input (or filename "d12"))
+        start (afind input \S)
+        end (afind input \E)
+        input (->> input (map (fn [row] (map (fn [c] (case c \S \a \E \z c)) row))))
+        starts (afind-all input \a)
+        starts (map first starts)]
+    (->> starts
+         (map #(dijkstra-distance input % end children-nodes))
+         (filter #(not (nil? %)))
+         (apply min))))
+
+(deftest d12
+  (is (= 31 (d12p1 "d12-test")))
+  (is (= 350 (d12p1)))
+  (is (= 29 (d12p2 "d12-test")))
+  (is (= 349 (d12p2))))
