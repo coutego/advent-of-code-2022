@@ -679,7 +679,6 @@
   #_(is (= 1 (d11p2))))
 
 ;; Day 12
-
 (defn d12-read-input [& [filename]]
   (->> (read-input-day (or filename "d12"))
        (map vec)
@@ -729,7 +728,9 @@
           (in? children end) steps
           :else (recur (inc steps)
                        children
-                       (reduce (fn [varr [i j :as n]] (update-in varr n (fn [[coord val _]] [coord val steps])))
+                       (reduce (fn [varr [i j :as n]] (update-in varr n
+                                                                 (fn [[coord val _]]
+                                                                   [coord val steps])))
                                varr
                                children)))))))
 
