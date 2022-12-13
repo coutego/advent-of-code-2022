@@ -1,7 +1,11 @@
 (ns aoc22
   (:require [clojure.string :as st]
             [clojure.test :refer [deftest is]]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [taoensso.tufte :as tufte :refer (defnp p profile)]))
+
+(tufte/add-basic-println-handler!
+  {:format-pstats-opts {:columns [:n-calls :max :mean :mad :clock :total]}})
 
 ;;
 ;; Utility code
@@ -42,6 +46,11 @@
 
 (defn in? [xs el]
   (some #(= el %) xs))
+
+(defn index-of [el coll]
+  (->> coll
+       (keep-indexed (fn [id x] (when (= el x) id)))
+       first))
 
 ;; Day 1
 (defn has-no-nils [xs]
@@ -711,29 +720,28 @@
   (->> [[(dec i) j] [(inc i) j] [i (dec j)] [i (inc j)]]
        (filter (fn [[x y]] (filter-children varr (vaget varr i j) (vaget varr x y))))))
 
-(defn dijkstra-distance [varr [sx sy :as start] [ex ey :as end] children-fn]
-  (let [varr (map-indexedv (fn [i row]
-                             (map-indexedv (fn [j val] [[i j] val nil])
-                                           row))
-                           varr)]
+(defn dijkstra-distance [matrix start end children-fn]
+  (let [matrix (map-indexedv (fn [i row]
+                               (map-indexedv (fn [j val] [[i j] val nil])
+                                             row))
+                             matrix)]
     (loop [steps 1
            to-check [start]
-           varr varr]
+           varr matrix]
       (let [children (->> to-check
                           (mapcat (partial children-fn varr))
-                          set
-                          vec)]
+                          distinct)]
         (cond
           (= 0 (count children)) nil
           (in? children end) steps
           :else (recur (inc steps)
                        children
-                       (reduce (fn [varr [i j :as n]] (update-in varr n
-                                                                 (fn [[coord val _]]
-                                                                   [coord val steps])))
+                       (reduce (fn [varr [i j :as n]]
+                                 (update-in varr n
+                                            (fn [[coord val _]]
+                                              [coord val steps])))
                                varr
                                children)))))))
-
 
 (defn d12p1 [& [filename]]
   (let [input (d12-read-input (or filename "d12"))
@@ -751,7 +759,7 @@
         starts (map first starts)]
     (->> starts
          (map #(dijkstra-distance input % end children-nodes))
-         (filter #(not (nil? %)))
+         (remove nil?)
          (apply min))))
 
 (deftest d12
@@ -759,3 +767,56 @@
   (is (= 350 (d12p1)))
   (is (= 29 (d12p2 "d12-test")))
   (is (= 349 (d12p2))))
+
+;; Day 13
+(def input-test (read-input-day "d13-test"))
+(def input (read-input-day "d13"))
+
+(defn compare-els [a b]
+  (cond
+    (int? a) (if (int? b) (- a b) (compare-els [a] b))
+    (int? b) (compare-els a [b])
+    (empty? a) (if (empty? b) 0 -1)
+    (empty? b) 1
+    :else (loop [a a
+                 b b]
+            (let [fa (first a)
+                  fb (first b)
+                  cp (compare-els fa fb)]
+              (cond
+                (not= 0 cp) cp
+                (empty? (rest a)) (if (empty? (rest b)) 0 -1)
+                :else (recur (rest a) (rest b)))))))
+
+(defn compare-lists [idx [a b]]
+  (if (>= (compare-els a b) 0)
+    (inc idx)
+    0))
+
+(defn score-p2 [packets]
+  (let [id1 (index-of [[2]] packets)
+        id2 (index-of [[6]] packets)]
+    (* (inc id1) (inc id2))))
+
+(defn d13p1 [& [filename]]
+  (->> (read-input-day (or filename "d13"))
+       (partition-by #(= % ""))
+       (remove #(= % '("")))
+       (map #(map read-string %))
+       (map-indexed compare-lists)
+       (reduce +)))
+
+(defn d13p2 [& [filename]]
+  (->> (read-input-day (or filename "d13"))
+       (partition-by #(= % ""))
+       (remove #(= % '("")))
+       (map #(map read-string %))
+       (apply concat [[[2]] [[6]]])
+       (sort compare-els)
+       score-p2))
+
+(deftest d13
+  (is (= 23 (d13p1 "d13-test")))
+  (is (= 4841 (d13p1)))
+  (is (= 140 (d13p2 "d13-test")))
+  (is (= 19305 (d13p2))))
