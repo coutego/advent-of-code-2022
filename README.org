@@ -43,3 +43,4 @@ Evaluate the buffer. That will create two interactive commands:
 - ~aoc22-run-all-tests~: runs all tests with ert, displaying the results on a new buffer.
 
 If your Emacs version is < 28 these commands will be named ~my-run-all~ and ~my-run-all-tests~ respectively.
+
